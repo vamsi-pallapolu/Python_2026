@@ -35,3 +35,36 @@ import math
 print(math.nan)
 print(float('inf'))
 print(float('-inf'))
+
+
+# convert integer to a string
+# Method 1
+n = 4
+s = str(n)
+print(type(s))
+
+# Method 2
+m = 2
+s2 = f"{m}"
+print(s2)
+print(type(s2))
+
+# Method 3 - Using format function
+o = 3
+s3 = "{}".format(n)
+print(type(s3))
+
+
+# Handling invalid input string
+try:
+    s = "hello"
+    n = int(s)
+except ValueError:
+    print(f"Invalid input \"{s}\", cannot convert to integer")
+
+s1 = 'hi'
+if s1.isdigit():
+    n = int(s1)
+    print(n)
+else:
+    print("The string is not numeric")
