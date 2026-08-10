@@ -2,6 +2,9 @@
 
 Source: `Basics/2_variables.py`
 
+## What is a variable?
+A variable is a **named reference to an object** in memory. In Python, a variable does not "hold" a value directly — it points to an object, and multiple variables can point to the same object. Variables are created the moment you assign a value; there is no separate declaration.
+
 ## Assignment
 ```python
 a = b = c = 20                 # same value to many names

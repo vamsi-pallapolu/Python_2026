@@ -2,7 +2,8 @@
 
 Source: `Basics/4_keywords.py`
 
-Keywords are **reserved words** that define Python's syntax. They cannot be used as identifiers (variable, function, or class names).
+## What is a keyword?
+A keyword is a **reserved word** built into the language that has a fixed meaning and defines the grammar of Python (e.g. `if`, `for`, `def`, `class`, `return`). They cannot be used as identifiers — you can't name a variable, function, or class after a keyword. Python 3.10+ also has *soft* keywords (`match`, `case`) which are reserved only in context.
 
 ```python
 # for = 10        # SyntaxError — 'for' is a keyword

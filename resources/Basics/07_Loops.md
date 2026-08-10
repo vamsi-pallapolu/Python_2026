@@ -2,6 +2,9 @@
 
 Source: `Basics/7_loops.py`
 
+## What is a loop?
+A loop is a control-flow construct that **executes a block of code repeatedly** until some condition is met. Python has two loop forms: `for` (iterates over an iterable — list, string, range, generator, etc.) and `while` (repeats as long as a condition is true). Both support `break`, `continue`, and an optional `else` clause that runs when the loop finishes without `break`.
+
 ## `for` loop
 Iterates over any iterable (list, tuple, string, range, dict, generator, ...).
 ```python
