@@ -5,6 +5,7 @@ Topic-wise reference, organized to mirror the project structure.
 ## Basics
 | # | Topic | Source file |
 |---|-------|-------------|
+| 0 | [About Python](Basics/00_About_Python.md) | — |
 | 1 | [Input / Output](Basics/01_Input_Output.md) | `Basics/1_io.py` |
 | 2 | [Variables](Basics/02_Variables.md) | `Basics/2_variables.py` |
 | 3 | [Operators](Basics/03_Operators.md) | `Basics/3_operators.py` |

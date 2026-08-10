@@ -43,3 +43,29 @@ print(s1)
 print(s2)
 
 # Common string methods
+# len
+s = "Vamsi"
+print(len(s))
+
+# upper
+s = "hello"
+print(s.upper())
+
+# lower
+s = "LOWeR"
+print(s.lower())
+
+# srip
+s = "   Vamsi P "
+print(s.strip())
+
+# replace
+s = "Python is fun"
+print(s.replace("fun", "awesome"))
+
+
+# Concatenating and Repeatimg strings
+
+# Formmatting Strings
+
+# String Membership Testing
