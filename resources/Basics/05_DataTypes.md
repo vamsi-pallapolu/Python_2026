@@ -86,7 +86,7 @@ else:
 ```python
 import random
 random.randint(1, 5)      # inclusive on both ends
-random.uniform(1, 10)     # float in [1, 10]
+random.uniform(1, 10)     # float in [1, 10]  (upper bound may be excluded due to FP rounding)
 random.choice([1, 2, 3])  # pick one
 random.shuffle(lst)       # in-place shuffle
 ```

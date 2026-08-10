@@ -28,14 +28,14 @@ not False        # True
 ```
 
 ## Bitwise
-| Op  | Meaning     |
-|-----|-------------|
-| `&` | AND         |
-| `|` | OR          |
-| `^` | XOR         |
-| `~` | NOT         |
-| `<<`| left shift  |
-| `>>`| right shift |
+| Op   | Meaning     |
+|------|-------------|
+| `&`  | AND         |
+| `\|` | OR          |
+| `^`  | XOR         |
+| `~`  | NOT         |
+| `<<` | left shift  |
+| `>>` | right shift |
 
 ## Assignment (compound)
 `= += -= *= /= //= %= **= <<= >>= &= |= ^=`
@@ -64,7 +64,9 @@ min_ = a if a < b else b
 ## Operator precedence & associativity
 Higher precedence binds tighter. Rough order (high → low):
 
-`**`  →  unary `+ - ~`  →  `* / // %`  →  `+ -`  →  shifts  →  `& ^ |`  →  comparisons  →  `not`  →  `and`  →  `or`.
+`**`  →  unary `+ - ~`  →  `* / // %`  →  `+ -`  →  shifts  →  `&`  →  `^`  →  `|`  →  comparisons  →  `not`  →  `and`  →  `or`.
+
+> Bitwise `&`, `^`, `|` are **three separate tiers** — `&` binds tighter than `^`, which binds tighter than `|`. So `5 | 1 ^ 4` parses as `5 | (1 ^ 4)` → `5 | 5` → `5`.
 
 - `**` is **right-associative**: `2**3**2 == 2**(3**2) == 512`.
 - Most others are left-associative.

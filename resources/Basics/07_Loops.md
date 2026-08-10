@@ -57,6 +57,7 @@ for i in range(1, 5):
     for j in range(i):
         print(i, end=' ')
     print()
+# Output (each row has a trailing space from end=' '):
 # 1
 # 2 2
 # 3 3 3

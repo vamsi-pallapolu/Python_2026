@@ -55,6 +55,7 @@ del z          # name removed; using z now raises NameError
 
 ## Practical patterns
 ```python
-a, b = b, a                # swap without a temp
+a, b = 10, 20
+a, b = b, a                # swap without a temp   -> a=20, b=10
 length = len("Python")     # 6
 ```

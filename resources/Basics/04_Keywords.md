@@ -10,20 +10,28 @@ A keyword is a **reserved word** built into the language that has a fixed meanin
 ```
 
 ## Complete list (Python 3.10+)
+Hard keywords — always reserved, appear in `keyword.kwlist`:
 ```
 False    None     True     and      as       assert   async    await
 break    class    continue def      del      elif     else     except
 finally  for      from     global   if       import   in       is
 lambda   nonlocal not      or       pass     raise    return   try
-while    with     yield    match    case
+while    with     yield
 ```
-> `match` / `case` are **soft** keywords (reserved only in that context).
+
+Soft keywords — only reserved in specific contexts, appear in `keyword.softkwlist`:
+```
+match    case    type    _
+```
+> `keyword.iskeyword("match")` returns `False` — soft keywords can still be used as identifiers outside their context.
 
 ## Check keywords at runtime
 ```python
 import keyword
-print(keyword.kwlist)          # list of all keywords
+print(keyword.kwlist)          # hard keywords
+print(keyword.softkwlist)      # soft keywords (match, case, type, _)
 keyword.iskeyword("for")       # True
+keyword.iskeyword("match")     # False — soft keyword, not in kwlist
 keyword.iskeyword("foo")       # False
 ```
 

@@ -71,7 +71,14 @@ If the user hasn't specified which file, ask which one — do not guess.
 
 5. **Update the resources index (if one exists).** If `resources/README.md` has a topic table, append a row for the new file. Keep the existing formatting.
 
-6. **Report** the file(s) written and any notable additions beyond the source (e.g. "Added a table of common list methods that the source file didn't cover").
+6. **Review with the `notes-reviewer` agent.** After writing the file (and updating the index), invoke the `notes-reviewer` subagent (defined in `.claude/agents/notes-reviewer.md`) on the newly created / modified `.md` file(s). Pass the source file path too so it can cross-check.
+   - If the reviewer returns Critical or Important findings (confidence ≥ 80), apply the fixes directly to the file. Do not argue with high-confidence findings.
+   - If it returns only Nits, apply the unambiguous ones (typos, formatting drift) and skip anything stylistic.
+   - If it reports no issues, move on.
+   - Re-run the reviewer once after applying fixes to confirm the file is clean. Do not loop more than twice — if issues persist after one fix pass, surface them to the user.
+   - Fallback: if the `notes-reviewer` agent is not yet loaded in the current session (e.g. just created), invoke `general-purpose` and paste in the review criteria from `.claude/agents/notes-reviewer.md`.
+
+7. **Report** the file(s) written, any notable additions beyond the source, and a short summary of what the reviewer found and what was fixed (e.g. "Reviewer flagged wrong precedence tier — corrected.").
 
 ## Language-agnostic behavior
 
