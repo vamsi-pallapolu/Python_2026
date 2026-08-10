@@ -22,7 +22,7 @@ def student(fname, lname):
 student(fname= 'vamsi', lname = 'pallapolu')
 student(lname= 'pallapolu', fname = 'vamsi')
 
-# Arbitraray arguments
+# Arbitrary arguments
 # *args stores positional arguments as tuple
 def myFun(*args, **kwargs):
     print("Extra Args")
@@ -48,5 +48,19 @@ def myFun(a):
     a = 20
 a = 10
 myFun(a)
-print(a)
+print(a) # 10
+
+
+# Assign a function to a varibale
+
+x = 123
+def show():
+    x = 90
+    print(x)
+    print(globals()['x'])
+
+print(x)
+f = show
+f()
+f()
 
