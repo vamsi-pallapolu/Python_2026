@@ -125,3 +125,36 @@ Compared lexicographically by Unicode code point.
 "apple" < "banana"       # True
 "Z" < "a"                # True — uppercase comes before lowercase in ASCII
 ```
+
+`==` checks **value equality**; `is` checks **object identity** (same memory address).
+```python
+s1 = "Python"
+s2 = "Python"
+s1 == s2      # True — same characters
+s1 is s2      # True — CPython interns short/literal strings, so both names bind to the same object
+```
+Don't rely on `is` for string equality — interning is an implementation detail and won't hold for dynamically built strings. Use `==`.
+
+## Prefix / suffix checks
+```python
+s = "hello dude"
+s.startswith("hello")   # True
+s.endswith("hello")     # False
+```
+Both accept a tuple for "any of these": `s.startswith(("http://", "https://"))`.
+
+## Converting a string to a list
+```python
+s = "Python is a programming language"
+s.split()               # ['Python', 'is', 'a', 'programming', 'language']  — splits on whitespace
+list(s)                 # ['P', 'y', 't', 'h', 'o', 'n', ...]              — one char per element
+```
+Custom delimiter with `split`:
+```python
+"1,2,3".split(",")      # ['1', '2', '3']
+```
+List comprehension per character (equivalent to `list(s)` but composable with a filter/transform):
+```python
+[ch for ch in "Python"]         # ['P', 'y', 't', 'h', 'o', 'n']
+[ch.upper() for ch in "abc"]    # ['A', 'B', 'C']
+```
