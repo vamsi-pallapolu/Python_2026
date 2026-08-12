@@ -19,3 +19,5 @@ Topic-wise reference, organized to mirror the project structure.
 | # | Topic | Source file |
 |---|-------|-------------|
 | 9 | [Strings](DataStructures/09_Strings.md) | `DataStructures/1_string.py` |
+| 10 | [Lists](DataStructures/10_Lists.md) | `DataStructures/2_0_list.py` |
+| 11 | [Iteration](DataStructures/11_Iteration.md) | `DataStructures/2_1_iteration.py` |
