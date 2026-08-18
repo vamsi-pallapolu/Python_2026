@@ -3,7 +3,7 @@
 Source: `Basics/8_functions.py`
 
 ## What is a function?
-A function is a **named, reusable block of code** that takes inputs (arguments), performs a task, and optionally returns a value. Functions promote code reuse, readability, and separation of concerns. In Python, functions are **first-class objects** — they can be assigned to variables, passed as arguments, and returned from other functions.
+A function is a **named block of code you can call multiple times**. It takes inputs (arguments), does something, and can return a result. Define with `def`, call with `name(args)`.
 
 ## Defining
 ```python

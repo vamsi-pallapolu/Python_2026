@@ -3,7 +3,7 @@
 Source: `DataStructures/2_0_list.py`
 
 ## What is a list?
-A list is a **mutable, ordered, dynamic sequence** that can hold elements of any type — including mixed types. Lists are the workhorse sequence in Python: resizable, indexable, sliceable, and iterable. Because they are mutable, methods like `append`, `insert`, and `remove` modify the list **in place** and return `None`, not a new list.
+A list is an **ordered collection of items** — written in square brackets: `[1, 2, 3]`. You can add, remove, and change items (lists are **mutable**), and items can be of any type.
 
 ## Creating a list
 ```python

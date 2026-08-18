@@ -1,7 +1,7 @@
 # About Python
 
 ## What is Python?
-Python is a **high-level, general-purpose, dynamically typed, interpreted** programming language known for its clean, readable syntax and "batteries-included" standard library. It supports multiple paradigms — procedural, object-oriented, and functional — and is used across web development, data science, machine learning, automation, scripting, DevOps, and scientific computing. Python emphasizes developer productivity: code is short, expressive, and quick to iterate on.
+Python is a popular programming language known for **easy-to-read syntax**. You write code in `.py` files and run them without a separate compile step. It's used everywhere — web apps, data science, machine learning, automation, scripting.
 
 Key traits (interview one-liners):
 - **Interpreted** — no separate compile step for the developer; source is executed by the Python interpreter (usually CPython).
@@ -216,7 +216,7 @@ Python isn't compiled to a native binary by default; to ship an executable:
 | `/` on ints | floor division | true division (use `//` for floor) |
 | `range()` | returns a list | returns a lazy `range` object (sequence, not an iterator) |
 | `input()` | evaluates input | reads a string |
-| `xrange` | separate iterator | gone — `range` is one |
+| `xrange` | separate lazy sequence | gone — `range` is now the lazy sequence |
 | Long int | separate `long` type | `int` is arbitrary precision |
 | End of life | Jan 1 2020 | actively supported |
 

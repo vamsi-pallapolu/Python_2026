@@ -3,7 +3,7 @@
 Source: `Basics/5_datatypes.py`
 
 ## What is a data type?
-A data type is a **classification** that tells the interpreter what kind of value a variable holds and what operations are valid on it. Python is **dynamically typed** (the type is bound to the object, not the variable) and **strongly typed** (implicit unsafe conversions are disallowed, e.g. `"1" + 2` is a `TypeError`). Every value in Python is an object with a type retrievable via `type(x)`.
+A data type tells Python **what kind of value** something is — a number, text, a list, `True`/`False`, etc. Python figures out the type automatically from the value; you can check it with `type(x)`.
 
 ## Categories
 | Category | Types |

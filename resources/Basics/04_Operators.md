@@ -3,7 +3,7 @@
 Source: `Basics/3_operators.py`
 
 ## What is an operator?
-An operator is a **special symbol or keyword** that performs an operation on one or more values (operands) and returns a result. Python groups operators into arithmetic, comparison, logical, bitwise, assignment, identity, and membership categories. Operator behavior can be customized per type via dunder methods (e.g. `__add__`, `__eq__`).
+An operator is a **symbol that does something with values** — like `+` for adding, `==` for checking equality, `and` for combining conditions. Python groups them into arithmetic, comparison, logical, bitwise, assignment, identity, and membership operators.
 
 ## Arithmetic
 | Op   | Meaning        | Example       |
@@ -44,9 +44,10 @@ not False        # True
 Check whether two names refer to the **same object**.
 ```python
 a = 10
+b = 20
 c = a
 a is c        # True
-a is not b    # True (if a and b are different objects)
+a is not b    # True (different objects)
 ```
 
 ## Membership

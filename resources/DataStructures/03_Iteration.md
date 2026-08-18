@@ -3,7 +3,7 @@
 Source: `DataStructures/2_1_iteration.py`
 
 ## What is iteration?
-Iteration is the process of stepping through the elements of an **iterable** (list, tuple, string, dict, set, generator, `range`, ...) one at a time. Python's canonical iteration construct is the `for` loop, which internally calls `iter()` on the iterable and then `next()` repeatedly until `StopIteration` is raised. `while` loops are used when the stopping condition isn't tied to a sequence — e.g. index-based traversal, waiting on a state change, or reading until a sentinel value.
+Iteration means **going through items one by one** — like looping over a list of names or characters in a string. Python's main tool is the `for` loop; use `while` when the stopping point isn't a fixed sequence.
 
 ## `for ... in` — the default
 Iterates directly over elements. No manual index tracking needed.

@@ -3,7 +3,7 @@
 Source: `DataStructures/2_2_2d.py`
 
 ## What is a 2-D list?
-A 2-D list is a **list whose elements are themselves lists** — Python's most common way to represent matrices, grids, and tables. There is no built-in matrix type in the standard library; a 2-D list is just nesting, so rows are independent list objects and access is `matrix[row][col]`. Rows can have different lengths (a "jagged" list), and any single-row operation (`append`, `reverse`, ...) affects only that inner list.
+A 2-D list is a **list of lists** — think a grid or table. Each inner list is a row, and you access a cell with `matrix[row][col]`. It's how you represent matrices in Python.
 
 ## Creating a 2-D list
 Literal form — a list of row lists:

@@ -3,7 +3,7 @@
 Source: `DataStructures/1_string.py`
 
 ## What is a string?
-A string is an **immutable sequence of Unicode characters**, used to store and manipulate text. Because strings are immutable, any operation that appears to modify a string (`replace`, concatenation, slicing) actually returns a **new string** object. Strings support indexing, slicing, iteration, and membership tests just like other sequences.
+A string is a piece of **text** — letters, digits, symbols — written in single or double quotes. Strings are **immutable**: once created, you can't change them. Any operation that looks like it changes a string actually returns a new one.
 
 ## Creation
 ```python

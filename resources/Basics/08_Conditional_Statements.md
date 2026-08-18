@@ -3,7 +3,7 @@
 Source: `Basics/6_Conditional.py`
 
 ## What is a conditional statement?
-A conditional statement lets a program **choose between different code paths** based on whether a boolean expression evaluates to `True` or `False`. Python provides `if / elif / else`, the ternary expression `x if cond else y`, and (since 3.10) `match / case` for structural pattern matching. Blocks are delimited by **indentation**, not braces.
+A conditional statement lets your program **do different things depending on a condition** — "if this is true, do X; otherwise, do Y." Python uses `if`, `elif`, and `else`, and groups the code by **indentation** (usually 4 spaces).
 
 ## `if / elif / else`
 ```python

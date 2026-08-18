@@ -3,7 +3,7 @@
 Source: `DataStructures/3_tuples.py`
 
 ## What is a tuple?
-A tuple is an **immutable, ordered sequence** of items. Like lists, tuples support indexing, slicing, iteration, and can hold mixed types — but once created, their contents cannot be changed (no `append`, `remove`, or item assignment). Immutability makes tuples hashable, so they can be used as dictionary keys or set elements — provided every element inside is itself hashable.
+A tuple is like a **list that can't be changed** — an ordered collection written with round brackets: `(1, 2, 3)`. Once created, you can't add, remove, or replace items. Great for fixed groups of values like coordinates `(x, y)`.
 
 ## Creating a tuple
 ```python

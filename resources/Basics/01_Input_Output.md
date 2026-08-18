@@ -3,7 +3,7 @@
 Source: `Basics/1_io.py`
 
 ## What is I/O?
-Input/Output is how a program communicates with the outside world — reading data from a source (keyboard, file, network) and writing results back to a destination (screen, file, network). In Python, the two built-ins `input()` and `print()` cover standard console I/O.
+**Input/Output** is how a program takes information in and sends information out. In Python, `input()` reads text the user types, and `print()` writes text to the screen.
 
 ## `print()`
 - Writes to standard output.
