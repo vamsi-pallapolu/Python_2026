@@ -23,6 +23,12 @@ for i in range(len(a)):
         print(a[i][j])
     print()
 
+print("Using enumeration")
+for i, row in enumerate(a):
+    for j, element in enumerate(row):
+        print(a[i][j])
+    print()
+
 # Methods on multi-dimensional list
 a = [[1, 2], [3, 4]]
 a.append([6, 7])
