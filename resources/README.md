@@ -22,3 +22,4 @@ Topic-wise reference, organized to mirror the project structure.
 | 10 | [Lists](DataStructures/10_Lists.md) | `DataStructures/2_0_list.py` |
 | 11 | [Iteration](DataStructures/11_Iteration.md) | `DataStructures/2_1_iteration.py` |
 | 12 | [2-D Lists](DataStructures/12_2D_Lists.md) | `DataStructures/2_2_2d.py` |
+| 13 | [Tuples](DataStructures/13_Tuples.md) | `DataStructures/3_tuples.py` |
