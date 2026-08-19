@@ -1,15 +1,15 @@
 # Context Managers (`with` statement)
 
-## What is a context manager?
-A context manager is a helper you use with the `with` keyword to guarantee cleanup. The most common case: opening a file with `with open(...) as f:` — Python automatically closes the file when the block ends, even if something goes wrong inside.
+## Definition
+A **context manager** guarantees deterministic setup and teardown around a block. `with cm as x:` binds `x` to `cm.__enter__()`, runs the block, then always calls `cm.__exit__(exc_type, exc, tb)` — on normal completion, exception, `return`, `break`, or `continue`.
 
 ## Basic usage
 ```python
 with open("file.txt") as f:
     data = f.read()
-# f.close() is called automatically here — even if read() raised
+# f.close() ran here — even if read() raised
 ```
-Compare to the manual equivalent:
+Manual equivalent:
 ```python
 f = open("file.txt")
 try:
@@ -17,74 +17,97 @@ try:
 finally:
     f.close()
 ```
-Same behavior — `with` is shorter, safer, and idiomatic.
 
-## The protocol — `__enter__` / `__exit__`
-A context manager is any object with two methods:
-- `__enter__(self)` — runs at the start of the block; its return value is bound to the name after `as`.
-- `__exit__(self, exc_type, exc_val, exc_tb)` — runs when the block exits, whether normally or via exception. Return `True` to *suppress* an exception (rare).
+## The protocol
+- `__enter__(self)` — runs at block entry; return value is bound by `as`.
+- `__exit__(self, exc_type, exc, tb)` — runs at block exit. Arguments are all `None` on normal exit. **Returning a truthy value suppresses the exception**; falsy/None lets it propagate.
 
 ```python
 class Timer:
     def __enter__(self):
-        self.start = time_now()
-        return self                     # what `as t` binds to
+        self.start = time()
+        return self                 # bound by `as t`
 
     def __exit__(self, exc_type, exc, tb):
-        print(f"elapsed: {time_now() - self.start}")
-        # return None (falsy) → don't suppress exceptions
+        self.elapsed = time() - self.start
+        # returning None → exception (if any) propagates
 
 with Timer() as t:
     do_work()
+print(t.elapsed)
 ```
 
 ## Multiple context managers
-Nest them by chaining with commas — each unwinds in reverse order on exit.
+Comma-separated form; entered left-to-right, exited **right-to-left** (reverse of entry, like nesting).
 ```python
 with open("in.txt") as fin, open("out.txt", "w") as fout:
     fout.write(fin.read())
 ```
-Equivalent to nested `with` blocks.
+Equivalent to nested `with` blocks. If the second `__enter__` raises, the first is exited normally.
 
-## `contextlib.contextmanager` — turn a generator into a context manager
-The decorator lets you write a context manager as a **single function** with a `yield`.
+## `@contextmanager` — generator form
+Write a context manager as a generator with a **single `yield`** inside `try/finally`. Code before `yield` is `__enter__`; the yielded value is what `as` binds; code after `yield` is `__exit__`.
 ```python
 from contextlib import contextmanager
 
 @contextmanager
 def timer():
-    start = time_now()
+    start = time()
     try:
-        yield                       # everything before `yield` = __enter__
+        yield start                 # bound by `as`
     finally:
-        print(f"elapsed: {time_now() - start}")   # after `yield` = __exit__
+        print(f"elapsed: {time() - start}")
 
-with timer():
+with timer() as t0:
     do_work()
 ```
-The `try / finally` ensures teardown runs even if the caller's block raises.
+An exception inside the block is re-raised at the `yield`; catch it there to suppress (equivalent to `__exit__` returning `True`).
 
-## Common built-in context managers
-| Context manager | Use |
-|-----------------|-----|
-| `open(...)` | file handles — closes on exit |
-| `threading.Lock()` | acquire on enter, release on exit |
-| `contextlib.suppress(Exc)` | swallow specified exceptions inside the block |
-| `contextlib.redirect_stdout(f)` | route `print` into a file/buffer |
-| `tempfile.TemporaryDirectory()` | temp dir that is deleted on exit |
-| DB connections / cursors | commit or rollback the transaction |
+## `contextlib` toolkit
+| Helper | Use |
+|---|---|
+| `suppress(*Excs)` | swallow listed exceptions inside the block |
+| `redirect_stdout(f)` / `redirect_stderr(f)` | route `print` to `f` |
+| `nullcontext(x)` | no-op CM — useful when a CM is conditional |
+| `closing(obj)` | wrap an object with `.close()` but no CM protocol |
+| `ExitStack` | dynamically enter a variable number of CMs |
 
-## Suppressing exceptions with `contextlib.suppress`
-Cleaner than `try / except: pass`.
 ```python
-from contextlib import suppress
+from contextlib import suppress, ExitStack, nullcontext
+
 with suppress(FileNotFoundError):
-    os.remove("maybe_exists.txt")
+    os.remove("maybe.txt")
+
+with ExitStack() as stack:
+    files = [stack.enter_context(open(p)) for p in paths]   # N files, all closed on exit
 ```
 
+## Async context managers
+Implement `__aenter__` and `__aexit__` (coroutines); enter with `async with`. Used for async DB clients, HTTP sessions, locks.
+```python
+async with aiohttp.ClientSession() as session:
+    async with session.get(url) as resp:
+        data = await resp.text()
+```
+
+## Common uses
+- Files (`open`), locks (`threading.Lock`, `asyncio.Lock`).
+- DB transactions — commit on success, rollback on exception.
+- Temp resources (`tempfile.TemporaryDirectory`, `tempfile.NamedTemporaryFile`).
+- Test doubles (`unittest.mock.patch(...) as mock`).
+- Decimal / numpy contexts (`decimal.localcontext`, `np.errstate`).
+- Signal masking, working-directory scoping.
+
+## Semantics
+- `__exit__` receives `(None, None, None)` on normal exit, else `(type, value, traceback)`.
+- Returning `True` from `__exit__` **suppresses** the exception; the `with` statement completes normally.
+- If `__enter__` raises, `__exit__` is **not** called — the manager was never entered.
+- `with` does not create a new scope; names bound in the block (including `as`) remain visible after.
+
 ## Gotchas
-- **`__exit__` runs even on exception** — the block's cleanup is guaranteed, but the exception still propagates unless `__exit__` returns `True`. Returning `True` to swallow errors is rarely correct.
-- **`with` does not create a new scope** — names bound inside the block (including via `as`) remain visible after the block. Just like `for` and `if`.
-- **`as name` binds `__enter__`'s return value, not the context manager itself.** For `open()`, `__enter__` returns the file — so `f` **is** the file object.
-- **Exceptions inside `__enter__`** — if `__enter__` raises, `__exit__` is **not** called. Do setup that can fail before opening the context.
-- **Reusing the same context manager instance** — most stdlib CMs (like file objects) are single-use; entering twice fails. Create a new one per `with` block.
+- **`__enter__` raising bypasses `__exit__`** — do failable setup before entering the context, or handle cleanup inside `__enter__` itself.
+- **Most stdlib CMs are single-use** — a closed file re-entered via `with` fails. Create a new instance per `with`.
+- **`as` binds `__enter__`'s return, not the manager** — for `open()`, that happens to be the file object, so `f` is the file. A custom CM that `return self` from `__enter__` behaves the same; one that returns something else does not.
+- **Suppressing exceptions** by returning `True` from `__exit__` is rarely correct — usually a bug.
+- **`with` doesn't scope names** — variables bound inside remain after the block, including via `as`.
+- **`@contextmanager` requires exactly one `yield`** — two `yield`s or an unhandled exception past `yield` breaks the protocol.

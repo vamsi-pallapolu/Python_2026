@@ -1,113 +1,104 @@
 # Modules & Imports
 
-## What is a module?
-A **module** is just a `.py` file. When you `import` it, you can use its functions and variables in another file. A **package** is a folder containing modules. This is how you split code across files and reuse it.
+## Definition
+A **module** is a single `.py` file. A **package** is a directory of modules. Both are units of code reuse: importing binds names from another file into the current namespace.
 
-## Basic imports
+## Import forms
 ```python
-import math
-math.sqrt(16)               # 4.0
-math.pi                     # 3.14159...
-```
-`import math` binds the name `math` in the current namespace; you access members through the dot.
+import math                     # bind module object as `math`
+math.sqrt(16)
 
-## Import specific names
-```python
-from math import sqrt, pi
-sqrt(16)                    # 4.0
-```
-Convenient, but pollutes the current namespace and hides where the name came from. Prefer the module-qualified form for anything ambiguous.
+from math import sqrt, pi       # bind names directly
+sqrt(16)
 
-## Aliasing with `as`
-```python
-import numpy as np
-import pandas as pd
-from math import sqrt as square_root
+import numpy as np              # rename on import
+from math import sqrt as sq
 ```
-Rename on import — common for long/collision-prone names.
+`import x` keeps the origin visible at each call site. `from x import y` is shorter but drops that trace and rebinds `y` locally.
 
-## Star imports — `from x import *`
+## Star imports
 ```python
-from math import *          # generally discouraged
+from math import *              # imports every public name
 ```
-Imports every public name. Makes the source of each name unclear and can silently shadow existing names. Fine in an interactive shell; avoid in scripts and libraries.
+Discouraged in modules and libraries: it hides the source of each name and can shadow builtins. A module can restrict what `*` exposes:
+```python
+__all__ = ["greet", "VERSION"]  # only these are pulled in by `import *`
+```
 
 ## `if __name__ == "__main__":`
-Every module has a `__name__` attribute. When the file is **run directly**, `__name__ == "__main__"`. When it's **imported**, `__name__` is the module's dotted name. This idiom lets a file behave as both a library and a script.
+Every module has a `__name__` attribute. It is `"__main__"` when the file is run directly and the module's dotted name when imported. A module's top-level code executes on import; the guard confines script-only side effects.
 ```python
 # hello.py
 def greet(name):
     return f"Hello, {name}"
 
 if __name__ == "__main__":
-    print(greet("World"))
+    print(greet("World"))       # runs only via `python hello.py`
 ```
-Run: `python hello.py` → prints `Hello, World`.
-Imported: `from hello import greet` → the `print` does **not** run.
 
 ## Packages
-A directory becomes a package when Python finds `__init__.py` in it (or, in modern Python, even without it via **namespace packages**). Sub-modules use dotted paths.
+A directory is a **regular package** if it contains `__init__.py`. That file runs once on first import and can expose package-level names.
 ```
 myapp/
     __init__.py
     utils/
         __init__.py
         strings.py
-        math.py
 ```
-```python
-from myapp.utils.strings import slugify
-import myapp.utils.math as mm
-```
+A directory without `__init__.py` is a **namespace package** (PEP 420). Namespace packages can span multiple directories on `sys.path`; they have no init code.
 
 ## Absolute vs relative imports
-Inside a package, you can import siblings with a **relative** import.
 ```python
 # inside myapp/utils/strings.py
-from . import math              # sibling module
-from ..config import DEFAULTS   # parent package
+from myapp.utils import math    # absolute — preferred by PEP 8
+from . import math              # relative — sibling module
+from ..config import DEFAULTS   # relative — parent package
 ```
-Absolute imports (`from myapp.utils import math`) are more explicit and preferred by PEP 8 for anything but internal package code.
+Relative imports resolve against `__package__`. They only work when the file is imported as part of a package; running it directly (`python strings.py`) makes `__package__` empty and relative imports raise `ImportError`. Use `python -m myapp.utils.strings` instead.
 
-## The import path (`sys.path`)
-Python searches for modules in this order:
-1. The directory of the script (or the current directory for interactive sessions).
-2. Directories in the `PYTHONPATH` environment variable.
-3. Installation-dependent defaults (stdlib + `site-packages`).
+## Running a package
+```bash
+python -m myapp                 # executes myapp/__main__.py
+```
+`-m` sets `__package__` correctly, so relative imports resolve.
 
-Inspect:
+## The import path
+`sys.path` is searched in order:
+1. Directory of the script (or `""` for interactive sessions).
+2. Entries in `PYTHONPATH`.
+3. Installation defaults (stdlib, then `site-packages`).
+
+## Module cache — `sys.modules`
+The first import executes the file and stores the resulting module object in `sys.modules`. Every later `import` returns the cached object without re-executing.
 ```python
 import sys
-sys.path
+"math" in sys.modules           # True after first import
 ```
+This is why editing a module in a running REPL has no effect until reload.
 
-## Import caches (`sys.modules`)
-Once imported, a module is cached in `sys.modules`. Subsequent `import` statements return the cached object — they do **not** re-execute the file.
+## Dynamic and reload
 ```python
-import sys
-"math" in sys.modules       # True after first import
+import importlib
+mod = importlib.import_module("myapp.utils.strings")   # dynamic import
+importlib.reload(mod)                                  # re-run the file
 ```
-Use `importlib.reload(module)` if you truly need to re-execute (rare — mostly debugging in a REPL).
+`reload` re-executes the module and rebinds its attributes in place, but existing references (e.g. `from mod import fn`) still point at the old objects.
 
-## Common patterns
+## Import order (PEP 8)
+Group imports, separated by blank lines:
 ```python
-# Library imports at the top of the file
-import os
+import os                       # 1. stdlib
 import sys
-from pathlib import Path
 
-# Third-party imports next
-import requests
+import requests                 # 2. third-party
 
-# Local imports last
-from .helpers import fetch
+from .helpers import fetch      # 3. local / same package
 ```
-PEP 8 groups imports in this order — stdlib, third-party, local — separated by blank lines.
 
 ## Gotchas
-- **Circular imports** — if `a.py` imports `b.py` which imports `a.py`, one side may see a **partially initialized** module. Restructure the code, or move the import inside a function to defer it.
-- **`from x import y` binds `y` in your namespace by value at import time.** Rebinding `x.y` later won't update your local `y`.
-- **`__name__ == "__main__"` guard is required** if the module might be imported. Without it, side effects run on every import.
-- **Star imports can silently shadow builtins** — `from math import *` overwrites your `pow` with `math.pow`. Rarely worth the noise.
-- **Modules are cached** — restart the interpreter (or `importlib.reload`) if you want fresh state after editing.
-- **Package needs an entry point** — `python -m myapp` runs `myapp/__main__.py`; `python myapp/` needs `__main__.py` too.
+- **Circular imports** — `a` imports `b`, `b` imports `a`. One side sees a **partially initialized** module. Defer by moving the import inside a function, or use `if TYPE_CHECKING:` for type-only imports.
+- **`from x import y` binds by value at import time.** Rebinding `x.y` afterwards does not update the local `y`.
+- **Missing guard** — top-level side effects run every time the module is imported, not just when executed as a script.
+- **Star imports shadow silently** — no warning when `from math import *` overwrites your `pow`.
+- **Heavy top-level code slows startup** — every importer pays the cost. Push work into functions.
+- **Namespace packages don't run init code** — if you need setup on import, use a regular package.

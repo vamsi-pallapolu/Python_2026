@@ -1,129 +1,139 @@
 # File I/O
 
-## What is file I/O?
-File I/O means **reading from** and **writing to** files on your computer. In Python you use `open()` to open a file, then call `.read()` or `.write()`. Always wrap it in `with open(...) as f:` so Python closes the file automatically.
-
-## Opening a file
-```python
-with open("data.txt") as f:
-    contents = f.read()
-```
-`open(path, mode="r", encoding=None)` — text mode by default. Always specify `encoding` for text files if portability matters.
+## Definition
+File I/O is reading from and writing to files through file objects. The entry point is `open(path, mode="r", encoding=None, newline=None)`, which returns a file object. Use it inside a `with` block so the file is closed deterministically when the block exits — including on exception.
 ```python
 with open("data.txt", encoding="utf-8") as f:
-    ...
+    text = f.read()
 ```
 
 ## Modes
-| Mode | Meaning |
-|------|---------|
-| `"r"` | read (default) — file must exist |
-| `"w"` | write — **truncates** the file if it exists, creates it if not |
-| `"a"` | append — writes at end of file, creates if missing |
-| `"x"` | exclusive create — fails if the file exists |
-| `"r+"` | read + write; file must exist |
-| `"b"` | binary suffix — `"rb"`, `"wb"`, `"ab"` — reads/writes `bytes`, not `str` |
-| `"t"` | text suffix (default) — reads/writes `str` |
+| Mode | Effect |
+|------|--------|
+| `"r"` | read (default); file must exist |
+| `"w"` | write; **truncates** to zero length or creates |
+| `"a"` | append; writes always go to end; creates if missing |
+| `"x"` | exclusive create; raises `FileExistsError` if the file exists |
+| `"r+"` | read + write, positioned at 0; file must exist |
+| `"w+"` | read + write, truncates first |
+| `"b"` | binary suffix — `rb`, `wb`, `ab` — I/O in `bytes` |
+| `"t"` | text suffix (default) — I/O in `str` |
 
-Modes combine: `"rb"`, `"w+b"`, etc.
+Modes combine: `"rb"`, `"w+b"`, `"xt"`.
+
+## Text vs binary
+- Text mode returns `str`. The file object decodes bytes using `encoding` and translates line endings.
+- Binary mode returns `bytes`. No decoding, no newline translation.
+
+Writing a `str` to a binary file (or `bytes` to a text file) raises `TypeError`.
+
+## Encoding
+Always pass `encoding="utf-8"` for text. The default (`locale.getencoding()`) is platform-dependent — on Windows it can be `cp1252`, which corrupts non-ASCII silently.
+
+`errors=` controls decode failures:
+- `"strict"` (default) — raise `UnicodeDecodeError`.
+- `"replace"` — insert `U+FFFD` for undecodable bytes.
+- `"ignore"` — drop them.
+- `"surrogateescape"` — round-trip undecodable bytes as surrogate code points (useful when re-emitting).
+
+## Newlines
+Text mode translates newlines by default: reads collapse `\r\n` → `\n`; writes translate `\n` → OS newline. Pass `newline=""` to disable translation. Required for the `csv` module.
 
 ## Reading
 ```python
 with open("data.txt", encoding="utf-8") as f:
-    text = f.read()                 # whole file as one string
+    text = f.read()             # entire file → str
+    # or
+    line = f.readline()         # one line, includes trailing "\n"
+    # or
+    lines = f.readlines()       # list[str] of all lines
 ```
+Iterate for memory-friendly line-by-line reads (buffered internally):
 ```python
 with open("data.txt", encoding="utf-8") as f:
-    line = f.readline()             # one line, including trailing \n
+    for line in f:
+        print(line.rstrip("\n"))
 ```
-```python
-with open("data.txt", encoding="utf-8") as f:
-    for line in f:                  # iterate line by line — memory-friendly
-        print(line.rstrip())        # strip trailing \n
-```
-```python
-with open("data.txt", encoding="utf-8") as f:
-    lines = f.readlines()           # list of all lines
-```
-Prefer the loop for large files — `read()` and `readlines()` load everything into memory.
 
 ## Writing
 ```python
 with open("out.txt", "w", encoding="utf-8") as f:
-    f.write("hello\n")
-    f.write("world\n")
+    n = f.write("hello\n")      # returns number of chars written
+    f.writelines(["a\n", "b\n"])  # no separator added
 ```
-`write` does **not** add a newline — include `\n` yourself.
-```python
-lines = ["a\n", "b\n", "c\n"]
-with open("out.txt", "w", encoding="utf-8") as f:
-    f.writelines(lines)             # no \n added — content is written verbatim
-```
-
-## Appending
-```python
-with open("log.txt", "a", encoding="utf-8") as f:
-    f.write("new entry\n")
-```
+Neither `write` nor `writelines` appends a newline — include `\n` in the strings.
 
 ## Binary I/O
-For images, PDFs, pickled data — anything that isn't text.
 ```python
 with open("photo.jpg", "rb") as f:
-    data = f.read()                 # bytes, not str
+    data = f.read()             # bytes
 
 with open("copy.jpg", "wb") as f:
     f.write(data)
 ```
 
-## Position — `tell` and `seek`
+## Position
 ```python
-with open("data.txt", encoding="utf-8") as f:
-    f.read(5)
-    f.tell()                        # current byte offset
-    f.seek(0)                       # rewind to start
+f.tell()                        # current byte offset
+f.seek(offset, whence)          # 0=start (default), 1=current, 2=end
 ```
-`seek(offset, whence)` — `whence`: `0` (start, default), `1` (current), `2` (end). Only `0` is portable in text mode.
+In text mode, only `seek(0)` and `seek(f.tell())` are portable — text offsets are opaque.
 
-## Line endings and encoding
-- Python normalizes line endings by default: reads translate `\r\n` → `\n`; writes translate `\n` → OS newline. Pass `newline=""` to disable (needed for `csv` and binary-ish text).
-- Always pass `encoding=` for text files. The default is platform-dependent and has burned many people on Windows.
+## Buffering and durability
+Text files on a TTY are line-buffered; text files on disk are block-buffered. Data may live in Python or OS buffers until flushed:
+```python
+f.flush()                       # push Python buffers to the OS
+os.fsync(f.fileno())            # force OS to write to disk
+```
+Closing a file (or leaving the `with` block) flushes but does not `fsync`.
 
-## Working with paths — `pathlib`
-The modern idiom. Cleaner than `os.path`, and file objects accept `Path` instances.
+## `pathlib`
+`pathlib.Path` is the modern path API. `open()` accepts `Path` objects.
 ```python
 from pathlib import Path
 
-p = Path("data") / "input.txt"
-p.exists()
-text = p.read_text(encoding="utf-8")            # one-shot read
-p.write_text("hello\n", encoding="utf-8")       # one-shot write
+p = Path("data") / "input.txt"          # composition
+p.exists(); p.stat().st_size
+text  = p.read_text(encoding="utf-8")
+data  = p.read_bytes()
+p.write_text("hello\n", encoding="utf-8")
+p.write_bytes(b"\x00\x01")
 
 for csv in Path("data").glob("*.csv"):
     print(csv.name)
 ```
+`read_text` / `write_text` open, read/write, and close in one call — convenient for small files.
 
-## Common patterns
-Reading JSON:
+## Atomic writes
+`os.replace` is atomic on POSIX and Windows. Write to a sibling temp file, then rename:
 ```python
-import json
-with open("config.json", encoding="utf-8") as f:
-    config = json.load(f)
+import os, tempfile
+d = Path("data")
+with tempfile.NamedTemporaryFile("w", dir=d, delete=False, encoding="utf-8") as tmp:
+    tmp.write("new contents\n")
+    tmp_path = tmp.name
+os.replace(tmp_path, d / "out.txt")     # atomic swap
 ```
-Reading CSV:
+Prevents readers from seeing a half-written file.
+
+## Standard serializers
 ```python
-import csv
-with open("data.csv", encoding="utf-8", newline="") as f:
-    reader = csv.reader(f)
-    for row in reader:
+import json, csv
+
+with open("config.json", encoding="utf-8") as f:
+    cfg = json.load(f)
+
+with open("data.csv", encoding="utf-8", newline="") as f:  # newline="" required
+    for row in csv.reader(f):
         print(row)
 ```
+`shutil` handles high-level copy/move; `tempfile` provides secure temp files and directories.
 
 ## Gotchas
-- **`"w"` truncates** — opening in write mode deletes the file's contents immediately, even if you never call `write`.
-- **Always specify `encoding`** for text mode. The default varies by OS/locale.
-- **`write` doesn't add newlines** — you must include `\n` yourself. Neither does `writelines`.
-- **Binary vs text mode** is not just about content — `read` returns `bytes` in binary mode and `str` in text mode. Trying to `write` a `str` to a `"wb"` file raises `TypeError`.
-- **Iterating a file is one-shot** — after the loop finishes, `seek(0)` before iterating again.
-- **Don't forget `with`** — a manually opened file that isn't closed can leak resources or corrupt data (writes may not flush).
-- **`newline=""`** — pass this when reading/writing CSVs, or you'll get blank rows on Windows.
+- **`"w"` truncates immediately** — the moment `open` returns, the file is empty. Use `"a"` to preserve, `"x"` to fail-fast.
+- **Default encoding varies** — always pass `encoding="utf-8"` for text. Do not rely on the platform default.
+- **`write` doesn't add newlines** — include `\n` explicitly. Same for `writelines`.
+- **Iterating a file is one-shot** — the position advances. Call `f.seek(0)` before iterating again.
+- **CSV needs `newline=""`** — the `csv` module handles line endings itself; the default translation produces blank rows on Windows.
+- **`with` matters** — a leaked file object may hold unflushed writes until it is garbage-collected.
+- **`flush` is not `fsync`** — data can still be lost on power loss. Use `os.fsync` when durability matters.

@@ -2,18 +2,17 @@
 
 Source: `DataStructures/2_2_2d.py`
 
-## What is a 2-D list?
-A 2-D list is a **list of lists** — think a grid or table. Each inner list is a row, and you access a cell with `matrix[row][col]`. It's how you represent matrices in Python.
+## Definition
+A 2-D list is a **list of lists** — a grid where each inner list is a row. Access a cell with `mat[i][j]`. Python has no built-in matrix type; a nested `list` is the standard structure.
 
-## Creating a 2-D list
+## Creation
 Literal form — a list of row lists:
 ```python
-a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-print(a)
+mat = [[1, 2, 3],
+       [4, 5, 6],
+       [7, 8, 9]]
 ```
-
-## Building a zero matrix with nested loops
-Build an `m × n` matrix filled with zeros by appending rows one at a time.
+Nested-loop build:
 ```python
 m, n = 4, 5
 mat = []
@@ -22,77 +21,99 @@ for i in range(m):
     for j in range(n):
         row.append(0)
     mat.append(row)
-print(mat)
 ```
-Each iteration creates a **new** inner list, so rows are independent. Avoid `[[0] * n] * m` — it repeats the *same* row reference `m` times, and mutating one row mutates all. A comprehension (`[[0] * n for _ in range(m)]`) is the concise, correct one-liner.
-
-## Iterating row-by-row
-Iterating a 2-D list directly yields each row (an inner list).
+Comprehension — the idiomatic form:
 ```python
-a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-for row in a:
+mat = [[0] * n for _ in range(m)]
+```
+
+## Why `[[0] * n] * m` fails
+`* m` repeats the same **reference** `m` times — every row is the same inner list. Mutating one row mutates all.
+```python
+mat = [[0] * 3] * 2
+mat[0][0] = 9
+mat        # [[9, 0, 0], [9, 0, 0]]   -- shared row
+```
+The comprehension `[[0] * n for _ in range(m)]` builds a fresh list each iteration.
+
+## Iterating rows
+Iterating a 2-D list yields each row (an inner list).
+```python
+for row in mat:
     print(row)
 ```
 
-## Index-based nested loops
-When you need both the row and column indices (e.g. to modify in place, or print the element at `[i][j]`), loop over the index ranges.
+## Index-based traversal
+Use when you need `i` and `j` (in-place updates, printing coordinates). Index off `mat[i]` — not `mat[0]` — so jagged rows still work.
 ```python
-for i in range(len(a)):
-    for j in range(len(a[i])):
-        print(a[i][j])
-    print()
-```
-Using `len(a[i])` (not `len(a[0])`) makes this safe for jagged lists where rows have different lengths.
-
-## Methods on the outer vs inner list
-Every list method works at the level you call it — the outer list treats each row as a single element, while `a[i]` operates on that specific row.
-
-**`append` on the outer list — adds a new row:**
-```python
-a = [[1, 2], [3, 4]]
-a.append([6, 7])
-# [[1, 2], [3, 4], [6, 7]]
+for i in range(len(mat)):
+    for j in range(len(mat[i])):
+        print(mat[i][j])
 ```
 
-**`extend` on a row — grows that row:**
+## Row vs matrix operations
+Every list method works at the level you call it — `mat.method(...)` acts on the outer list; `mat[i].method(...)` acts on that row.
+
+**Add a row:**
 ```python
-a[0].extend([0, 0])
-# [[1, 2, 0, 0], [3, 4], [6, 7]]
+mat.append([6, 7])          # new row at the end
+```
+**Grow a row:**
+```python
+mat[0].extend([0, 0])       # appends two ints to row 0
+```
+**Reverse a row vs reverse row order:**
+```python
+mat[0].reverse()            # reverses row 0 in place
+mat.reverse()               # reverses the order of rows
+```
+Neither is a transpose — see below.
+
+## Row swap
+Tuple unpacking swaps **references**, not contents. Cheap and safe.
+```python
+mat[i], mat[j] = mat[j], mat[i]
 ```
 
-## Reversing rows vs the whole matrix
-`reverse()` is in-place and only reverses the list it's called on.
+## Transpose
+Rows and columns are not symmetric — swapping needs `zip`.
 ```python
-a = [[1, 2], [3, 4]]
-a[0].reverse()      # [[2, 1], [3, 4]]  — only row 0 is reversed
-a.reverse()         # [[3, 4], [2, 1]]  — the row order is reversed
+mat = [[1, 2, 3], [4, 5, 6]]
+list(zip(*mat))                    # [(1, 4), (2, 5), (3, 6)]
+list(map(list, zip(*mat)))         # [[1, 4], [2, 5], [3, 6]]
 ```
-This is not a transpose — swapping rows and columns needs a separate step (`list(zip(*a))` or a nested comprehension).
 
-## List comprehension over a 2-D list
-Nest a comprehension inside another to transform each element of each row while preserving structure.
+## Comprehension patterns
+**Transform each element, preserving structure:**
 ```python
-a = [[1, 2], [2, 3]]
-r = [[x * 2 for x in row] for row in a]
-# [[2, 4], [4, 6]]
+[[x * 2 for x in row] for row in mat]
 ```
-The **outer** comprehension iterates rows; the **inner** one builds a new row from that row's elements. To *flatten* instead of preserving structure, put both `for` clauses in one comprehension: `[x for row in a for x in row]`.
+**Flatten to 1-D:**
+```python
+[x for row in mat for x in row]
+```
+Nested `for` clauses read left-to-right — outer loop first.
 
-## Common patterns
+## Common idioms
 | Task | Idiom |
 |------|-------|
-| Build `m × n` zero matrix | `[[0] * n for _ in range(m)]` |
-| Access element | `a[i][j]` |
-| Number of rows / cols | `len(a)` / `len(a[0])` (assumes rectangular) |
-| Iterate rows | `for row in a:` |
-| Iterate elements with indices | `for i, row in enumerate(a): for j, x in enumerate(row):` |
-| Transform every element | `[[f(x) for x in row] for row in a]` |
-| Flatten to 1-D | `[x for row in a for x in row]` |
-| Transpose | `list(map(list, zip(*a)))` |
+| Zero matrix `m x n` | `[[0] * n for _ in range(m)]` |
+| Access element | `mat[i][j]` |
+| Dimensions (rectangular) | `len(mat)`, `len(mat[0])` |
+| Iterate rows | `for row in mat:` |
+| Iterate with indices | `for i, row in enumerate(mat): for j, x in enumerate(row):` |
+| Transform elements | `[[f(x) for x in row] for row in mat]` |
+| Flatten | `[x for row in mat for x in row]` |
+| Transpose | `list(zip(*mat))` |
+| Rotate 90° clockwise | `list(zip(*mat[::-1]))` |
+
+## When to use NumPy
+For numeric work at scale, `numpy.ndarray` beats a nested list — contiguous memory, vectorized operations, and true multi-dimensional indexing (`a[i, j]` instead of `a[i][j]`). Use nested lists for small, heterogeneous, or non-numeric grids.
 
 ## Gotchas
-- **`[[0] * n] * m` shares the row** — all `m` "rows" point to the same inner list; mutating one mutates all. Use a comprehension instead.
-- **Shallow copies still share inner rows** — `a.copy()`, `list(a)`, and `a[:]` copy the outer list only. Use `copy.deepcopy(a)` when you need independent rows.
-- **`reverse()` returns `None`** — it mutates in place. `b = a.reverse()` sets `b` to `None`; use `a[::-1]` for a reversed copy.
-- **Jagged rows break `len(a[0])`-based loops** — always index off `a[i]` when row lengths may vary.
-- **`append` vs `extend` on a row** — `row.append([0, 0])` adds one nested element (`[..., [0, 0]]`), while `row.extend([0, 0])` adds the two ints individually.
+- **`[[0] * n] * m` shares rows** — always use the comprehension form.
+- **Shallow copy shares inner rows** — `mat.copy()`, `list(mat)`, `mat[:]` copy the outer list only. Use `copy.deepcopy(mat)` for independent rows.
+- **`reverse()` returns `None`** — it mutates. `b = mat.reverse()` sets `b` to `None`; use `mat[::-1]` for a reversed copy.
+- **Jagged rows break `len(mat[0])` loops** — index off `mat[i]` when rows may differ in length.
+- **`append` vs `extend` on a row** — `row.append([0, 0])` adds one nested list (`[..., [0, 0]]`); `row.extend([0, 0])` adds two ints.
+- **Transpose is not `reverse`** — reversing swaps row order; transposing swaps axes.

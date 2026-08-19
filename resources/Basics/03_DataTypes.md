@@ -2,97 +2,117 @@
 
 Source: `Basics/5_datatypes.py`
 
-## What is a data type?
-A data type tells Python **what kind of value** something is — a number, text, a list, `True`/`False`, etc. Python figures out the type automatically from the value; you can check it with `type(x)`.
+## Definition
+A type defines the set of values an object can hold and the operations valid on it. Python is **dynamically typed** (types are checked at runtime) and **strongly typed** (no implicit coercion between unrelated types — e.g., `"1" + 1` raises `TypeError`). Every value is an object; `type(x)` returns its class.
 
-## Categories
-| Category | Types |
-|----------|-------|
-| Numeric  | `int`, `float`, `complex`, `bool` |
-| Sequence | `str`, `list`, `tuple`, `range` |
-| Set      | `set`, `frozenset` |
-| Mapping  | `dict` |
-| Binary   | `bytes`, `bytearray`, `memoryview` |
-| None     | `NoneType` |
+## Built-in categories
+| Category | Types                              | Mutable? |
+|----------|------------------------------------|----------|
+| Numeric  | `int`, `float`, `complex`, `bool`  | no       |
+| Sequence | `str`, `tuple`, `range`            | no       |
+|          | `list`                             | yes      |
+| Set      | `frozenset`                        | no       |
+|          | `set`                              | yes      |
+| Mapping  | `dict`                             | yes      |
+| Binary   | `bytes`                            | no       |
+|          | `bytearray`, `memoryview`          | yes      |
+| None     | `NoneType`                         | —        |
 
-## Mutable vs immutable
-- **Immutable:** `int`, `float`, `bool`, `str`, `tuple`, `frozenset`, `bytes`.
-- **Mutable:** `list`, `dict`, `set`, `bytearray`.
+Mutability determines whether an object supports in-place modification and, transitively, whether it is hashable.
 
-## List — ordered, mutable, allows duplicates
+## Numeric types
 ```python
-l1 = ['apple', 1, 3.4]
-l1[1] = 5                     # supports item assignment
+1_000_000               # int — arbitrary precision, no overflow
+2 ** 100                # 1267650600228229401496703205376
+3.14                    # float — IEEE-754 double (64-bit)
+2 + 3j                  # complex
+True, False             # bool — subclass of int (True == 1, False == 0)
 ```
 
-## Tuple — ordered, immutable
+`float` cannot represent most decimals exactly. Compare with tolerance:
 ```python
-t = (1, 2, 3)
-# t[1] = 4    # TypeError
-```
-
-## Set — unordered, unique, mutable
-```python
-chars = {'a', 'b', 'b', 'c'}   # {'a', 'b', 'c'}
-# chars[0]                     # TypeError (not subscriptable)
-```
-
-## Dict — key → value mapping
-```python
-numbers = {1: 'One', 2: 'two'}
-for k in numbers:
-    print(numbers[k])
-```
-
-## Special float values
-```python
+0.1 + 0.2 == 0.3                    # False
 import math
-math.nan
-float('inf')
-float('-inf')
+math.isclose(0.1 + 0.2, 0.3)        # True
 ```
 
-## Type conversion (casting)
+Special float values:
 ```python
-int("10")       # 10
-float("3.14")   # 3.14
-str(42)         # "42"
-list("abc")     # ['a', 'b', 'c']
-tuple([1, 2])   # (1, 2)
-set("aab")      # {'a', 'b'}
+float("inf"), float("-inf"), float("nan")
+math.isnan(x)           # nan != nan, so compare with isnan
 ```
 
-Convert `int` → `str` — three ways:
+## Sequences
+Ordered, indexable, sliceable. `list` is mutable; `str`, `tuple`, `range` are not.
 ```python
-str(n)             # method 1
-f"{n}"             # method 2
-"{}".format(n)     # method 3
+[1, 2, 3][0]            # 1
+(1, 2, 3)[-1]           # 3
+"abc"[1:]               # 'bc'
+range(10)[::2]          # range(0, 10, 2)
 ```
 
-## Safe conversion
+## Set and dict
+```python
+{1, 2, 2, 3}            # {1, 2, 3} — unordered, unique
+{"a": 1, "b": 2}["a"]   # 1
+```
+
+`set` and `dict` require **hashable** keys/elements. `dict` preserves insertion order (guaranteed since 3.7).
+
+## `None`
+Singleton sentinel for "no value". Compare with `is`, not `==`.
+```python
+x = None
+if x is None: ...
+```
+
+## Hashability
+An object is hashable if it has a stable `__hash__` and `__eq__`. Rule of thumb: **immutable built-ins are hashable; mutable built-ins are not**. A `tuple` is hashable iff all its elements are.
+```python
+hash((1, 2, "a"))           # ok
+hash((1, [2]))              # TypeError — list inside is unhashable
+{[1, 2]}                    # TypeError
+{(1, 2)}                    # ok
+```
+
+## Type conversion
+Constructors act as converters. They raise `ValueError` (or `TypeError`) on malformed input.
+```python
+int("10")               # 10
+int("10", 2)            # 2 — base parameter
+int(3.9)                # 3 — truncates toward zero
+float("3.14")           # 3.14
+str(42)                 # '42'
+list("abc")             # ['a', 'b', 'c']
+tuple([1, 2])           # (1, 2)
+set("aab")              # {'a', 'b'}
+bool(0), bool(""), bool([])   # all False
+```
+
+Safe conversion pattern:
 ```python
 try:
     n = int(s)
 except ValueError:
-    print(f"Invalid input {s!r}, cannot convert to integer")
-
-if s.isdigit():
-    n = int(s)
-else:
-    print("The string is not numeric")
+    n = None
 ```
 
-## Random numbers
+## `type()` vs `isinstance()`
+- `type(x) is T` — exact type match, no subclasses.
+- `isinstance(x, T)` — subclass-aware; also accepts a tuple of types.
 ```python
-import random
-random.randint(1, 5)      # inclusive on both ends
-random.uniform(1, 10)     # float in [1, 10]  (upper bound may be excluded due to FP rounding)
-random.choice([1, 2, 3])  # pick one
-random.shuffle(lst)       # in-place shuffle
+isinstance(True, int)       # True — bool subclasses int
+type(True) is int           # False
+isinstance(x, (int, float)) # numeric check
 ```
 
-## Inspecting types
-```python
-type(x)                  # exact type
-isinstance(x, int)       # preferred (subclass-aware) type check
-```
+Prefer `isinstance` for type checks; use `type()` only when subclass identity matters.
+
+## Gotchas
+- **`0.1 + 0.2 != 0.3`** — binary floats can't represent decimal tenths. Use `math.isclose` or `decimal.Decimal`.
+- **`True == 1` and `False == 0`** — `bool` is an `int` subclass. `[0, False]` deduplicates via `set` to `{0}`; keys `0` and `False` collide in a `dict`.
+- **`tuple` containing a `list` is not hashable** — hashability is deep.
+- **`int("3.0")` raises `ValueError`** — use `int(float("3.0"))`.
+- **`list("abc")` splits into characters** — pass `[s]` to wrap a single string.
+- **`nan == nan` is `False`** — sort/dedup of collections containing `nan` misbehaves. Use `math.isnan`.
+- **Chained numeric conversion loses precision** — `int(float("999999999999999999"))` != the original.

@@ -1,86 +1,99 @@
 # Virtual Environments & `pip`
 
-## What is a virtual environment?
-A **virtual environment** (venv) is a private, per-project Python setup. Packages you install for one project stay in that project's folder and don't affect anything else. Every real Python project should use one.
+## Definition
+A **virtual environment** is a per-project directory containing a Python interpreter (usually a symlink) and an isolated `site-packages`. Packages installed inside it do not affect other projects or the system interpreter.
 
-## Why bother?
-- **Isolation** — Project A needs `requests 2.28`, Project B needs `requests 2.31`. Both work.
-- **Reproducibility** — pin exact versions in `requirements.txt`; anyone can recreate the environment.
-- **System hygiene** — no `sudo pip install` polluting the system interpreter (or breaking OS tools).
+## Why
+- **Isolation** — project A pins `requests==2.28`, project B pins `requests==2.31`. Both run.
+- **Reproducibility** — a pinned `requirements.txt` reconstructs the same set of packages elsewhere.
+- **System hygiene** — no writes to the system interpreter. Modern OSes (macOS, Debian/Ubuntu) block `pip install` on the system Python via PEP 668 for this reason.
 
-## Creating a venv (stdlib — `venv`)
+## Creating
 ```bash
-python -m venv .venv        # creates a .venv/ directory in the project
+python -m venv .venv            # creates .venv/ using the current interpreter
+python3.12 -m venv .venv        # be explicit about the version
 ```
-Convention: name it `.venv` and add it to `.gitignore`. It's per-machine, per-Python-version.
+Convention: name it `.venv`, add it to `.gitignore`. The venv is per-machine and tied to the exact Python it was created with.
 
-## Activating and deactivating
-Activation just prepends the venv's `bin/` to your `PATH` so `python` and `pip` point inside the venv.
+## Activation
+Activation prepends `.venv/bin` to `PATH` and sets `VIRTUAL_ENV`. That's all — `python` and `pip` now resolve inside the venv.
 ```bash
-# macOS / Linux (bash/zsh)
+# bash / zsh
 source .venv/bin/activate
 
-# macOS / Linux (tcsh — the shell in this project)
+# tcsh (this project)
 source .venv/bin/activate.csh
 
-# Windows (PowerShell)
+# Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 
-# Deactivate (any shell)
-deactivate
+# any shell
+deactivate                      # restores the previous PATH
 ```
-When activated, your prompt is usually prefixed with `(.venv)`.
+Activation is a shell convenience. You can skip it and call `.venv/bin/python` directly.
 
-## Installing packages — `pip`
+## Installing packages
 ```bash
-pip install requests                    # latest version
-pip install "requests>=2.28,<3"         # version range
-pip install requests==2.31.0            # exact pin
-pip install -U requests                 # upgrade to latest
-pip uninstall requests                  # remove
-pip list                                # list installed packages
-pip show requests                       # details on one package
+pip install requests
+pip install "requests>=2.28,<3"     # version range
+pip install requests==2.31.0        # exact pin
+pip install ~=1.8.0                 # compatible release: >=1.8.0, <1.9.0
+pip install -U requests             # upgrade to latest
+pip uninstall requests
+pip list                            # what's installed
+pip show requests                   # metadata for one package
 ```
+Version specifiers follow PEP 440. `~=X.Y` allows patch-level updates; `~=X.Y.Z` allows only bug-fix updates.
 
-## Freezing dependencies
-Capture the exact versions installed:
+## Freezing and restoring
 ```bash
-pip freeze > requirements.txt
+pip freeze > requirements.txt       # snapshot of every installed version
+pip install -r requirements.txt     # reinstall the exact set
 ```
-Recreate on another machine (after creating and activating a fresh venv):
+Commit `requirements.txt`. Do not commit `.venv/` — it is machine- and path-specific.
+
+## Editable installs
+For a local package under development:
 ```bash
-pip install -r requirements.txt
+pip install -e .                    # install the project in editable mode
 ```
-Commit `requirements.txt` to git; do **not** commit the venv itself.
+Edits to the source take effect immediately without reinstalling. Requires a `pyproject.toml` or `setup.py`.
 
-## `requirements.txt` in the wild
-```
-requests==2.31.0
-pandas>=2.0,<3
-mypy~=1.8.0          # ~=X.Y.Z → same minor (1.8.*), latest patch
-```
+## PEP 668 — externally-managed environments
+Recent macOS Homebrew and Debian/Ubuntu ship a marker file that makes `pip install` refuse to touch the system Python. The fix is to use a venv per project, or `pipx` for standalone tools.
 
-## Alternative tools you may see
-- **`pip-tools`** — `pip-compile` produces a locked `requirements.txt` from a human-edited `requirements.in`.
-- **Poetry** — full project + dependency manager (`pyproject.toml`, lockfile).
-- **`uv`** — very fast Rust-based installer & venv manager (superset of `pip` + `venv`).
-- **`conda`** — separate ecosystem, popular in data science; handles non-Python binaries too.
-
-For learning, plain `venv + pip + requirements.txt` is fine and universally understood.
-
-## Checking what interpreter you're using
+## `pipx`
+Installs each CLI tool into its own private venv but exposes the entry-point on `PATH`. For end-user tools (e.g. `black`, `httpie`), not for project dependencies.
 ```bash
-which python                # macOS/Linux
-where python                # Windows
+pipx install black
+```
+
+## `uv`
+A Rust rewrite of pip + venv, an order of magnitude faster. Drop-in for most workflows:
+```bash
+uv venv                             # create .venv
+uv pip install requests
+uv pip freeze > requirements.txt
+```
+
+## Lockfiles vs `requirements.txt`
+`pip freeze` captures every installed package — direct and transitive — in one flat list. That reproduces state but hides intent. Tools that separate the two:
+- **pip-tools** — `pip-compile requirements.in` produces a locked `requirements.txt`.
+- **Poetry** — `pyproject.toml` for direct deps, `poetry.lock` for the full graph.
+- **uv** — `uv.lock` with the same split.
+
+## Verifying the interpreter
+```bash
+which python                        # should end in .venv/bin/python
 python -c "import sys; print(sys.executable)"
+python -c "import site; print(site.getsitepackages())"
 ```
-Should point inside `.venv/bin/` (or `.venv\Scripts\`) when the venv is active.
+`sys.executable` is the authoritative answer — `which` reflects `PATH`, which activation manipulates.
 
-## Common patterns
-Full lifecycle for a new project:
+## Full lifecycle
 ```bash
 python -m venv .venv
-source .venv/bin/activate           # or activate.csh on tcsh
+source .venv/bin/activate.csh       # tcsh
 pip install --upgrade pip
 pip install requests pandas
 pip freeze > requirements.txt
@@ -88,9 +101,9 @@ echo ".venv/" >> .gitignore
 ```
 
 ## Gotchas
-- **Activation is per-shell-session** — open a new terminal? Reactivate. Or point at the venv's python directly: `.venv/bin/python script.py`.
-- **`pip install` outside a venv installs globally.** Some OSes (recent macOS, Debian) now refuse; use `--user` or, better, a venv.
-- **Don't commit `.venv/`** — it's platform- and path-specific. Commit `requirements.txt` instead.
-- **`pip freeze` captures everything, including transitive deps** — reproducible but noisy. Tools like `pip-compile` separate direct from transitive.
-- **Multiple Python versions** — `python -m venv` uses whichever `python` you invoke. Be explicit: `python3.12 -m venv .venv`.
-- **tcsh users** — activate with `.venv/bin/activate.csh`, not `activate`. This project's shell is tcsh.
+- **Activation is per shell session** — a new terminal is not activated. Reactivate, or invoke `.venv/bin/python` directly.
+- **Don't commit `.venv/`** — it embeds absolute paths and platform-specific binaries.
+- **`pip freeze` is noisy** — it includes transitive deps. Prefer `pip-compile`, Poetry, or `uv` to separate direct from transitive.
+- **Wrong interpreter** — `python -m venv .venv` uses whichever `python` is first on `PATH`. Pin the version explicitly (`python3.12 -m venv .venv`).
+- **PEP 668** — `pip install` on the system interpreter is now blocked on many OSes. Use a venv, `pipx`, or `--break-system-packages` (don't).
+- **tcsh** — this project's shell. Activate with `activate.csh`, not `activate`.

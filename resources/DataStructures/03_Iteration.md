@@ -2,102 +2,133 @@
 
 Source: `DataStructures/2_1_iteration.py`
 
-## What is iteration?
-Iteration means **going through items one by one** — like looping over a list of names or characters in a string. Python's main tool is the `for` loop; use `while` when the stopping point isn't a fixed sequence.
+## Definition
+Iteration is **traversing an iterable one element at a time**. Python's primary construct is `for`; `while` handles condition-driven loops.
 
-## `for ... in` — the default
-Iterates directly over elements. No manual index tracking needed.
+## Iterator protocol
+- An **iterable** implements `__iter__()`, which returns an **iterator**.
+- An **iterator** implements `__next__()`, which returns the next value or raises `StopIteration`.
+- Sequence-protocol fallback: an object with `__getitem__` starting from index 0 is also iterable (legacy path).
+
+## How `for` works
+`for x in iterable:` desugars to:
+```python
+it = iter(iterable)
+while True:
+    try:
+        x = next(it)
+    except StopIteration:
+        break
+    # loop body
+```
+So `for` handles both true iterators and legacy sequence types transparently.
+
+## `for x in iterable` — direct
 ```python
 fruits = ['apple', 'banana', 'cherry']
 for fruit in fruits:
     print(fruit)
 ```
 
-## `enumerate` — index + element
-Use when you need **both** the index and the value. Cleaner and faster than `range(len(...))`.
+## `enumerate` — index + value
 ```python
-elements = [1, 2, 3]
-for index, element in enumerate(elements):
-    print(f"Index: {index}, element:{element}")
+for i, x in enumerate(['a', 'b', 'c'], start=0):
+    print(i, x)
 ```
-Optional `start` argument sets the first index:
-```python
-for i, ch in enumerate("abc", start=1):
-    print(i, ch)          # 1 a / 2 b / 3 c
-```
+Preferred over `range(len(x))` when you need both — one lookup instead of two.
 
-## `while` loop — condition-driven
-Repeats as long as a condition is true. Useful when the loop doesn't map cleanly to a sequence.
+## `while` — condition-driven
+Use when termination depends on runtime state, not a sequence.
 ```python
-elements = [1, 2, 3, 4]
-index = 0
-while index < len(elements):
-    print(elements[index])
-    index += 1
+n = 0
+while n < 3:
+    print(n)
+    n += 1
 ```
-Python uses `index += 1` to increment — there is **no** `++` or `--` operator. Writing `index++` is a syntax error; `++index` is parsed as unary `+` applied twice — it evaluates `index` but does not increment it, so it's a misleading no-op and shouldn't be used.
+No `++` / `--` in Python. `++n` parses as unary-plus twice — a no-op.
 
-## `range(len(...))` — index-based `for`
-Iterate by index without a `while` loop.
+## `range(len(x))` — anti-pattern for value+index
 ```python
-elements = [10, 20, 30]
-for i in range(len(elements)):
+for i in range(len(elements)):     # two lookups: elements[i]
     print(elements[i])
 ```
-This works but is often not the best choice — prefer:
-- `for x in elements:` when you only need values.
-- `for i, x in enumerate(elements):` when you need **both** index and value (no double lookup).
-Reach for `range(len(...))` only when you truly need just the indices (e.g. modifying elements in place by index, or iterating in step with another sequence via a shared index).
+Prefer `enumerate`. Reach for `range(len(...))` only when you truly need just the indices (parallel structures, in-place index-based updates).
 
-## `for` vs `while` — when to use which
-| Use `for` when... | Use `while` when... |
-|---|---|
-| Iterating over a known iterable | Loop end depends on runtime state, not a sequence |
-| You want every element | You're polling / retrying / waiting for a condition |
-| Idiomatic, most common case | Index-based logic with skips or resets |
-
-Even for index-based traversal, prefer `for i in range(len(...))` or `enumerate` — reserve `while` for genuinely condition-driven loops.
-
-## Loop control keywords
+## Loop control
 | Keyword | Effect |
 |---------|--------|
-| `break` | exit the enclosing loop immediately |
+| `break` | exit the innermost loop immediately |
 | `continue` | skip to the next iteration |
-| `pass` | no-op placeholder (not loop-specific) |
-| `else` on a loop | runs **only if the loop finished without `break`** |
+| `pass` | no-op placeholder |
+| `else` on a loop | runs iff the loop finished **without** `break` |
 
 ```python
-for n in [1, 2, 3, 4]:
-    if n == 3:
+for n in nums:
+    if n == target:
         break
 else:
-    print("completed")     # not printed — broke out early
+    raise ValueError("not found")
 ```
 
-## Iterating other common types
+## Iterating other types
 ```python
-# String — one character at a time
-for ch in "abc":
-    print(ch)
+for ch in "abc":              # string -> characters
+    ...
 
-# Dict — keys by default; use .items() for pairs
 d = {"a": 1, "b": 2}
+for k in d:                   # keys (default)
+    ...
+for v in d.values():
+    ...
 for k, v in d.items():
-    print(k, v)
+    ...
 
-# range — lazy sequence of ints
-for i in range(3):
-    print(i)               # 0, 1, 2
+for x in {1, 2, 3}:           # set (arbitrary order)
+    ...
+for i in range(3):            # lazy integer sequence
+    ...
+for x in (i * i for i in range(5)):    # generator expression
+    ...
+for line in open("f.txt"):    # file object -> lines
+    ...
 ```
 
-## Iterables vs iterators (quick note)
-- An **iterable** is anything you can call `iter()` on (list, str, dict, set, generator, ...).
-- An **iterator** is the object returned by `iter()` — it has `__next__()` and yields values until `StopIteration`.
-- `for` handles both transparently; you rarely call `iter` / `next` directly.
+## Iterables vs iterators
+- **Iterables** can be re-iterated — each `iter(iterable)` call returns a fresh iterator (`list`, `str`, `dict`, `range`, ...).
+- **Iterators** are single-shot — once exhausted, further `next` calls raise `StopIteration`. Generators and `zip`, `map`, `filter` return iterators.
+
+```python
+it = iter([1, 2, 3])
+list(it)     # [1, 2, 3]
+list(it)     # []   -- exhausted
+```
+
+## Two-argument forms
+```python
+next(it, default)           # returns default instead of StopIteration
+iter(callable, sentinel)    # calls callable() until it returns sentinel
+```
+`iter(callable, sentinel)` is useful for polling loops:
+```python
+for line in iter(input, "quit"):
+    print(line)
+```
+
+## Comprehension scope
+Comprehension loop variables are **scoped to the comprehension** — they do not leak.
+```python
+[x for x in range(3)]
+print(x)         # NameError
+```
+Plain `for` variables **do** leak into the enclosing scope:
+```python
+for i in range(3): pass
+print(i)         # 2
+```
 
 ## Gotchas
-- **Modifying a list while iterating over it** can skip or repeat elements. Iterate over a copy (`for x in a[:]`) or build a new list.
-- **`range(len(x))` when you also need the value** — use `enumerate(x)` instead.
-- **No `++` / `--` in Python** — always `x += 1`. Integers are immutable, so `+=` rebinds the name to a new int object.
-- **Infinite `while` loops** — forgetting to update the loop variable is the classic bug (`while index < n:` with no `index += 1`).
-- **Loop variable leaks** — after `for i in range(3): ...`, `i` is still bound to `2` outside the loop. Python does not scope regular `for`-loop variables to the loop body. **Comprehension** loop variables (`[x for x in ...]`), on the other hand, **are** scoped to the comprehension in Python 3 — they do not leak.
+- **Mutating while iterating** — insertions/deletions skip or repeat elements. Iterate a copy (`a[:]`) or accumulate and reassign.
+- **One-shot iterators** — you can't reuse an exhausted iterator; rebuild it.
+- **Loop variable leaks** in plain `for` loops; comprehensions don't leak.
+- **No `++` / `--`** — use `x += 1`.
+- **Infinite `while`** — missing state change (`while i < n:` with no `i += 1`).

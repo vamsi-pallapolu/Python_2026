@@ -2,8 +2,8 @@
 
 Source: `DataStructures/1_string.py`
 
-## What is a string?
-A string is a piece of **text** — letters, digits, symbols — written in single or double quotes. Strings are **immutable**: once created, you can't change them. Any operation that looks like it changes a string actually returns a new one.
+## Definition
+A `str` is an **immutable sequence of Unicode code points**. Every operation that "changes" a string returns a new object.
 
 ## Creation
 ```python
@@ -11,150 +11,135 @@ s1 = 'single'
 s2 = "double"
 s3 = """triple
         line"""
-s4 = str(123)     # from another type
+s4 = str(123)          # from another type -> '123'
 ```
+All four forms produce the same `str` type. Triple-quoted preserves embedded newlines.
 
 ## Indexing
-Strings are **sequences of characters** — accessed by 0-based index; negative indices count from the end.
+Zero-based; negative indices count from the end. Out-of-range access raises `IndexError`.
 ```python
-name = "Vamsi123@*()"
-name[1]     # 'a'
-name[-3]    # '*'
+name = "Vamsi123"
+name[1]      # 'a'
+name[-1]     # '3'
 ```
-Out-of-range access raises `IndexError`.
 
 ## Slicing — `s[start:stop:step]`
-- `stop` is exclusive.
-- Any of the three parts can be omitted.
-- A negative `step` reverses direction.
+`stop` is exclusive; any part may be omitted; negative `step` reverses direction. Slicing never raises — out-of-range bounds are clamped.
 ```python
 s = "abcdef"
-s[1:4]     # 'bcd'
-s[:3]      # 'abc'
-s[3:]      # 'def'
-s[::-1]    # 'fedcba'   (reverse)
-s[::2]     # 'ace'
-```
-
-## Iteration
-```python
-for ch in "ABCDEF":
-    print(ch)
+s[1:4]       # 'bcd'
+s[:3]        # 'abc'
+s[3:]        # 'def'
+s[::-1]      # 'fedcba'
+s[::2]       # 'ace'
 ```
 
 ## Immutability
-Strings **cannot be modified in place**. Any "update" creates a new object.
+No in-place edits — no item or slice assignment.
 ```python
-s = "aBCD"
-print(id(s))
-s = 'A' + s[1:]
-print(id(s))          # different id — new string
+s = "abc"
+s[0] = 'A'          # TypeError
+s = 'A' + s[1:]     # rebinding only; new object
 ```
 
-## Deletion
+## Concatenation, repetition, membership
 ```python
-s = 'vamsi'
-del s          # deletes the name, not part of the string
+"ab" + "cd"          # 'abcd'
+"ab" * 3             # 'ababab'
+"cat" in "concat"    # True
 ```
-You cannot delete a single character in place — build a new string with slicing.
-
-## Updating a string
-Since strings are immutable, "update" via slicing, concatenation, or `replace`:
+Iteration yields code points one at a time:
 ```python
-s  = "abcd"
-s1 = "A" + s[1:]              # 'Abcd'
-s2 = s.replace("abc", "AB1")  # 'AB1d'
+for ch in "abc":
+    print(ch)
 ```
 
-## Concatenation and repetition
-```python
-"ab" + "cd"    # 'abcd'
-"ab" * 3       # 'ababab'
-```
-
-## Membership
-```python
-"cat" in "concatenate"       # True
-"z" not in "abc"             # True
-```
-
-## Common string methods
+## Common methods
 | Method | Purpose |
 |--------|---------|
-| `len(s)` | length |
-| `s.lower()` / `s.upper()` | change case |
-| `s.title()` / `s.capitalize()` / `s.swapcase()` | other case transforms |
+| `len(s)` | number of code points |
+| `s.lower()` / `s.upper()` / `s.title()` / `s.capitalize()` | case transforms |
 | `s.strip()` / `s.lstrip()` / `s.rstrip()` | trim whitespace (or given chars) |
-| `s.split(sep)` | split into a list |
-| `sep.join(iterable)` | join iterable with `sep` |
+| `s.split(sep)` / `s.rsplit(sep, n)` / `s.splitlines()` | split into list |
+| `sep.join(iterable)` | join iterable of strings |
 | `s.replace(old, new)` | substitute all occurrences |
-| `s.find(sub)` | first index, or `-1` if missing |
-| `s.index(sub)` | first index, raises `ValueError` if missing |
-| `s.startswith(p)` / `s.endswith(p)` | prefix / suffix check |
-| `s.count(sub)` | number of non-overlapping occurrences |
-| `s.isdigit()`, `s.isalpha()`, `s.isalnum()`, `s.isspace()` | classification |
-| `s.zfill(n)` / `s.rjust(n, c)` / `s.ljust(n, c)` | padding |
+| `s.find(sub)` / `s.rfind(sub)` | index or `-1` |
+| `s.index(sub)` | index; raises `ValueError` |
+| `s.startswith(p)` / `s.endswith(p)` | prefix / suffix — accept a tuple |
+| `s.count(sub)` | non-overlapping occurrences |
+| `s.isdigit()` / `.isalpha()` / `.isalnum()` / `.isspace()` | classification |
+| `s.zfill(n)` / `s.ljust(n, c)` / `s.rjust(n, c)` | padding |
+| `s.translate(t)` with `str.maketrans(src, dst)` | per-character mapping |
+
+`split()` with no argument splits on runs of any whitespace and drops empty fields; `split(" ")` splits on single spaces and keeps empties.
 
 ## Escape sequences
 | Sequence | Meaning |
 |----------|---------|
-| `\n`     | newline |
-| `\t`     | tab |
-| `\\`     | backslash |
+| `\n` | newline |
+| `\t` | tab |
+| `\\` | backslash |
 | `\'` `\"` | quotes |
-| `\uXXXX` | unicode codepoint |
+| `\uXXXX` | unicode code point |
 
 ## Raw strings
-Prefix `r` — backslashes are treated literally (useful for regex and Windows paths).
+Prefix `r` disables backslash interpretation — useful for regex and Windows paths.
 ```python
-path = r"C:\new\test"           # no interpretation of \n, \t
+path  = r"C:\new\test"
 regex = r"\d+\.\d+"
 ```
 
-## Formatting (three ways)
+## Formatting
+Three forms; **f-strings preferred**.
 ```python
 name, age = "Vamsi", 29
-f"Hi {name}, age {age}"           # f-string  (preferred)
-"Hi {}, age {}".format(name, age) # str.format
-"Hi %s, age %d" % (name, age)     # old-style (C-like)
+f"Hi {name}, age {age}"             # f-string
+"Hi {}, age {}".format(name, age)   # str.format (older)
+"Hi %s, age %d" % (name, age)       # %-style (C-like, legacy)
+```
+F-string features:
+```python
+f"{value!r}"          # repr()
+f"{value!s}"          # str()
+f"{value!a}"          # ascii()
+f"{x=}"               # debug: 'x=<value>'   (3.8+)
+f"{n:>10}"            # right-align, width 10
+f"{n:<10}"            # left-align
+f"{pi:.2f}"           # 2 decimal places
+f"{count:,}"          # thousands separator
+f"{n:b}" / f"{n:o}" / f"{n:x}"   # binary / octal / hex
+f"{x:e}"              # scientific
+f"{ratio:%}"          # percent (multiplies by 100)
+```
+
+## Encoding
+`str` is Unicode; bytes are a separate type. Convert with `encode`/`decode`; UTF-8 is the default.
+```python
+b = "café".encode("utf-8")     # b'caf\xc3\xa9'
+b.decode("utf-8")              # 'café'
 ```
 
 ## Comparison
-Compared lexicographically by Unicode code point.
+Lexicographic by Unicode code point.
 ```python
-"apple" < "banana"       # True
-"Z" < "a"                # True — uppercase comes before lowercase in ASCII
+"apple" < "banana"     # True
+"Z" < "a"              # True — 'Z'=0x5A, 'a'=0x61
+```
+`==` compares values; `is` compares identity. CPython interns some short/literal strings, so `is` may coincidentally return `True` — do not rely on it.
+
+## Performance note
+Concatenating in a loop is O(n^2) because each `+=` builds a new object:
+```python
+out = ""
+for part in parts:
+    out += part          # quadratic
+out = "".join(parts)     # linear
 ```
 
-`==` checks **value equality**; `is` checks **object identity** (same memory address).
-```python
-s1 = "Python"
-s2 = "Python"
-s1 == s2      # True — same characters
-s1 is s2      # True — CPython interns short/literal strings, so both names bind to the same object
-```
-Don't rely on `is` for string equality — interning is an implementation detail and won't hold for dynamically built strings. Use `==`.
-
-## Prefix / suffix checks
-```python
-s = "hello dude"
-s.startswith("hello")   # True
-s.endswith("hello")     # False
-```
-Both accept a tuple for "any of these": `s.startswith(("http://", "https://"))`.
-
-## Converting a string to a list
-```python
-s = "Python is a programming language"
-s.split()               # ['Python', 'is', 'a', 'programming', 'language']  — splits on whitespace
-list(s)                 # ['P', 'y', 't', 'h', 'o', 'n', ...]              — one char per element
-```
-Custom delimiter with `split`:
-```python
-"1,2,3".split(",")      # ['1', '2', '3']
-```
-List comprehension per character (equivalent to `list(s)` but composable with a filter/transform):
-```python
-[ch for ch in "Python"]         # ['P', 'y', 't', 'h', 'o', 'n']
-[ch.upper() for ch in "abc"]    # ['A', 'B', 'C']
-```
+## Gotchas
+- **Immutable** — no in-place edits; slice-and-rebuild instead.
+- **`find` vs `index`** — `find` returns `-1`, `index` raises `ValueError`.
+- **`split()` vs `split(" ")`** — no-arg splits on any whitespace and drops empties; `split(" ")` does not.
+- **`len(s)` counts code points, not bytes** — `len("café") == 4`, but its UTF-8 encoding is 5 bytes.
+- **`is` for equality** — interning is an implementation detail. Use `==`.
+- **Loop concatenation is quadratic** — use `"".join(parts)`.

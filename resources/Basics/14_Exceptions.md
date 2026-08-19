@@ -1,10 +1,10 @@
 # Exceptions
 
-## What is an exception?
-An **exception** is Python's way of saying "something went wrong" — a missing file, a bad index, a divide by zero. If you don't catch it, the program crashes and prints an error. Handling exceptions lets you catch the problem and keep the program running.
+## Definition
+An **exception** is a runtime error signalled by raising an object of the exception hierarchy. Unhandled, it unwinds the stack and terminates the program with a traceback. Handling redirects control to a matching `except` clause.
 
 ## `try` / `except`
-Wrap the risky operation; catch by exception class.
+Wrap the risky code; match by exception class (`isinstance` semantics — subclasses are caught by base classes).
 ```python
 try:
     n = int(input("number: "))
@@ -12,113 +12,129 @@ try:
 except ValueError:
     print("not a number")
 except ZeroDivisionError:
-    print("can't divide by zero")
+    print("cannot divide by zero")
 ```
-Match the **most specific** class you actually intend to handle — never a bare `except:`.
+Order clauses **most-specific first**; a base-class clause listed first shadows later specific ones.
 
-## `except` with the exception object
+## Multiple types in one clause
+```python
+try:
+    parse(x)
+except (ValueError, TypeError) as e:      # tuple, not `or`
+    log(e)
+```
+
+## Binding with `as`
+Binds the exception instance to a name **only within the clause body** — the name is deleted on exit to break reference cycles with the traceback.
 ```python
 try:
     open("missing.txt")
 except FileNotFoundError as e:
-    print(f"file missing: {e.filename}")
+    print(e.filename)
+# e is no longer in scope here
 ```
 
-## `else` — runs when no exception was raised
-Put in the `else` block anything that should run **only if the `try` succeeded**. Keeps the `try` narrow.
+## `else` — ran when `try` succeeded
+Runs iff no exception was raised. Keeps the `try` block narrow — only the operation that can fail sits inside `try`.
 ```python
 try:
     data = fetch()
 except NetworkError:
-    print("fetch failed")
+    log("fetch failed")
 else:
-    process(data)           # runs only if fetch() didn't raise
+    process(data)             # runs only when fetch() succeeded
 ```
 
 ## `finally` — always runs
-Cleanup code that must execute whether the `try` succeeded, raised, or returned early.
+Executes on any exit path: fall-through, exception (handled or not), `return`, `break`, `continue`.
 ```python
-f = open("file.txt")
 try:
-    process(f)
+    work()
+    return 1
 finally:
-    f.close()               # runs even if process(f) raised
+    cleanup()                 # runs before the return actually returns
 ```
-For file/lock/DB cleanup, prefer a **context manager** (`with` statement) — see [15_Context_Managers.md](15_Context_Managers.md).
+A `return` or `raise` inside `finally` **overrides** the `try`'s return value or in-flight exception. Rarely intended.
 
-## Raising exceptions
-Use `raise` with an exception instance (or class).
+## `raise` and re-raise
 ```python
-def sqrt(x):
-    if x < 0:
-        raise ValueError(f"cannot sqrt negative: {x}")
-    return x ** 0.5
-```
+raise ValueError(f"bad input: {x!r}")     # new exception
 
-## Re-raising
-Bare `raise` inside an `except` block re-raises the current exception, preserving the traceback.
-```python
 try:
     do_thing()
 except Exception:
-    log("do_thing failed")
-    raise                   # re-raise, don't swallow
+    log("failed")
+    raise                                  # re-raise current — keeps traceback
 ```
 
-## Exception chaining — `raise ... from ...`
-Preserves both the new and the original exception in the traceback — signals "the second was **caused by** the first".
+## Exception chaining
+`raise X from Y` sets `X.__cause__ = Y` — the traceback prints "The above exception was the direct cause of the following exception". If a new exception is raised implicitly inside an `except` block, Python sets `__context__` and prints "During handling of the above exception...".
 ```python
 try:
     int(user_input)
 except ValueError as e:
-    raise RuntimeError("bad config") from e
+    raise RuntimeError("bad config") from e     # explicit cause
 ```
-Use `from None` to suppress the original if you specifically want a clean traceback.
+`raise X from None` suppresses the chain — clean traceback with no origin.
 
-## Common built-in exceptions
-| Exception | Raised when |
-|-----------|-------------|
-| `ValueError` | right type, wrong value (e.g. `int("abc")`) |
-| `TypeError` | wrong type (e.g. `"a" + 1`) |
-| `KeyError` | dict key missing (`d["missing"]`) |
-| `IndexError` | sequence index out of range (`a[99]`) |
-| `AttributeError` | attribute missing (`obj.foo` and no `foo`) |
-| `NameError` | name is not defined |
-| `ZeroDivisionError` | divide by zero |
-| `FileNotFoundError` | file doesn't exist |
-| `StopIteration` | iterator exhausted |
-| `RuntimeError` | generic error not fitting the above |
-
-They all inherit from `Exception`, which inherits from `BaseException`. Catch `Exception` (not `BaseException`) as a last resort — `BaseException` also catches `KeyboardInterrupt` / `SystemExit`, which you almost never want to swallow.
+## Exception hierarchy
+```
+BaseException
+ ├── SystemExit                (sys.exit)
+ ├── KeyboardInterrupt         (Ctrl-C)
+ ├── GeneratorExit             (generator .close())
+ └── Exception
+      ├── ArithmeticError      → ZeroDivisionError, OverflowError, FloatingPointError
+      ├── LookupError          → IndexError, KeyError
+      ├── OSError              → FileNotFoundError, PermissionError, ...
+      ├── ValueError, TypeError, AttributeError, NameError, RuntimeError, StopIteration, ...
+```
+Catch `Exception`, **never** `BaseException` — the latter swallows `KeyboardInterrupt` and `SystemExit`. Bare `except:` is equivalent to `except BaseException:` — don't use it.
 
 ## Custom exceptions
-Subclass `Exception` (or a more specific class).
+Subclass `Exception` (or a more specific class). Name ends in `Error`. Add attributes if callers need structured info.
 ```python
 class InvalidUserError(Exception):
-    """Raised when a user record fails validation."""
+    """User record failed validation."""
 
 class UserNotFoundError(InvalidUserError):
     pass
 
 try:
     load_user(42)
-except InvalidUserError as e:      # catches both subclasses
-    log(str(e))
+except InvalidUserError as e:      # catches both
+    log(e)
 ```
-Give them descriptive names ending in `Error`; add attributes if callers need structured info.
 
-## Multiple exception types in one clause
+## `assert` is not for validation
+`assert cond, msg` raises `AssertionError` when `cond` is falsy. All `assert` statements are **stripped when Python runs with `-O`** — use them for internal invariants, never for user-input validation or security checks.
+```python
+assert isinstance(x, int), "internal invariant"     # ok — debug aid
+if x < 0: raise ValueError(...)                     # ok — real check
+```
+
+## `ExceptionGroup` and `except*` (3.11+)
+Represents multiple exceptions raised concurrently — used by `asyncio.TaskGroup` and any code that must surface several failures. `except*` matches by type and produces a subgroup.
 ```python
 try:
-    parse(x)
-except (ValueError, TypeError) as e:        # tuple, not or
-    print(f"bad input: {e}")
+    run_tasks()
+except* ValueError as eg:
+    for e in eg.exceptions: log(e)
+except* (OSError, RuntimeError) as eg:
+    handle(eg)
 ```
 
+## Semantics
+- Matching uses `isinstance(exc, clause_type)`.
+- First matching clause wins; remaining clauses are skipped.
+- The exception object is set on `sys.exc_info()` for the duration of the clause.
+- `finally` executes before the exception propagates or the `return` completes.
+
 ## Gotchas
-- **Never use bare `except:` or `except BaseException:`** — they catch `KeyboardInterrupt` and `SystemExit` too. Use `except Exception:` if you truly need a catch-all.
-- **Don't silently pass** — `except X: pass` hides real bugs. At minimum, log it.
-- **`except` clauses match by isinstance** — a subclass is caught by a base class. Order clauses **most-specific first**, or the specific `except` will be shadowed.
-- **`try` scope**: names assigned inside `try` are visible outside, but if the assignment raised before completing, using them raises `UnboundLocalError` / `NameError`.
-- **`else` runs only when no exception was raised** — not when one was raised and handled.
-- **`finally` runs even on `return`** — including when it itself returns/raises, which overrides the try's return value. Rarely what you want.
+- **Bare `except:`** or `except BaseException:` catches `KeyboardInterrupt` and `SystemExit`.
+- **Silent `except X: pass`** hides bugs — at minimum, log.
+- **Clause ordering** — most-specific first, or a base class shadows subclasses.
+- **`finally` return/raise overrides** the `try`'s return or in-flight exception.
+- **`as e` is scoped to the clause** — reference outside raises `NameError`.
+- **`assert` disappears under `-O`** — never rely on it for validation.
+- **Chaining defaults** — inside an `except`, a fresh `raise NewError(...)` still records `__context__`; use `from None` to hide it when it's noise.
