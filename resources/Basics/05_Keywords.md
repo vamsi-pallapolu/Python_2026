@@ -91,4 +91,4 @@ keyword.issoftkeyword("match")  # True
 - **Cannot rebind hard keywords** — `True = 0` and `def = 1` are syntax errors.
 - **Soft keywords shadow builtins** — `type = int` is legal but breaks `type(x)` for the rest of the scope. Same risk with `match` shadowing `re.match` after `from re import match`.
 - **Trailing-underscore convention** — when you need a name that collides with a keyword, use `class_`, `type_`, `from_`. Common in libraries that wrap SQL or HTTP.
-- **`_` is context-dependent** — a hard keyword only inside `match` (wildcard pattern). Everywhere else it is a normal identifier and a REPL convention for the last result.
+- **`_` is a soft keyword** — reserved only as the wildcard pattern inside `case`. Everywhere else it is a normal identifier and a REPL convention for the last result.

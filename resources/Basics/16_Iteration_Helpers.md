@@ -41,7 +41,7 @@ dict(zip(names, ages))                 # {'Alice': 30, ...}
 ```
 
 ## `reversed(seq)`
-Iterator over `seq` in reverse. Works on sequences with `__reversed__` or `__len__` + `__getitem__` — **not** on arbitrary iterators or dicts before 3.7.
+Iterator over `seq` in reverse. Works on sequences with `__reversed__` or `__len__` + `__getitem__` — **not** on arbitrary iterators. `dict` gained `__reversed__` in 3.8; before that, `reversed(some_dict)` raised `TypeError`.
 ```python
 list(reversed([1, 2, 3]))              # [3, 2, 1]
 ```

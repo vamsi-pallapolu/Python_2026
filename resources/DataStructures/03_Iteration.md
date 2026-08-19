@@ -60,7 +60,7 @@ Prefer `enumerate`. Reach for `range(len(...))` only when you truly need just th
 | `break` | exit the innermost loop immediately |
 | `continue` | skip to the next iteration |
 | `pass` | no-op placeholder |
-| `else` on a loop | runs iff the loop finished **without** `break` |
+| `else` on a loop | runs only when the loop finished **without** `break` |
 
 ```python
 for n in nums:

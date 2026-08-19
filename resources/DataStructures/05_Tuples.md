@@ -3,7 +3,7 @@
 Source: `DataStructures/3_tuples.py`
 
 ## Definition
-A tuple is an **immutable, ordered sequence**. Once created, its elements cannot be added, removed, or replaced. A tuple is **hashable** iff every element it holds is hashable — which makes tuples valid dict keys and set members, unlike lists.
+A tuple is an **immutable, ordered sequence**. Once created, its elements cannot be added, removed, or replaced. A tuple is **hashable** only when every element it holds is hashable — which makes tuples valid dict keys and set members, unlike lists.
 
 ## Creation
 ```python
@@ -101,7 +101,7 @@ class Point:
 Use a **list** when the collection will grow, shrink, or be reordered.
 
 ## Hashability rule
-A tuple is hashable iff **every element** is hashable.
+A tuple is hashable only when **every element** is hashable.
 ```python
 hash((1, 2, "x"))                   # ok
 hash((1, [2, 3]))                   # TypeError — inner list is unhashable

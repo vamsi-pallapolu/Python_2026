@@ -35,7 +35,7 @@ except FileNotFoundError as e:
 ```
 
 ## `else` — ran when `try` succeeded
-Runs iff no exception was raised. Keeps the `try` block narrow — only the operation that can fail sits inside `try`.
+Runs only when no exception was raised. Keeps the `try` block narrow — only the operation that can fail sits inside `try`.
 ```python
 try:
     data = fetch()

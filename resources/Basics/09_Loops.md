@@ -66,7 +66,7 @@ for x in [1, 2, 3, 4, 5]:
 Python has no labelled `break`. To exit multiple nested loops, encapsulate them in a function and `return`.
 
 ## `for ... else` and `while ... else`
-The `else` clause executes iff the loop terminates without `break`. Typical use: search loops.
+The `else` clause executes only when the loop terminates without `break`. Typical use: search loops.
 ```python
 for x in nums:
     if x == target:

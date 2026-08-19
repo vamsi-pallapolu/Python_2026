@@ -43,7 +43,7 @@ pip uninstall requests
 pip list                            # what's installed
 pip show requests                   # metadata for one package
 ```
-Version specifiers follow PEP 440. `~=X.Y` allows patch-level updates; `~=X.Y.Z` allows only bug-fix updates.
+Version specifiers follow PEP 440. `~=X.Y` allows minor-level updates within the same major (`~=1.8` → `>=1.8, <2.0`); `~=X.Y.Z` allows only patch-level updates (`~=1.8.0` → `>=1.8.0, <1.9.0`).
 
 ## Freezing and restoring
 ```bash

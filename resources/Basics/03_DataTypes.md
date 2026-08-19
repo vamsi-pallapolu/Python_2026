@@ -67,7 +67,7 @@ if x is None: ...
 ```
 
 ## Hashability
-An object is hashable if it has a stable `__hash__` and `__eq__`. Rule of thumb: **immutable built-ins are hashable; mutable built-ins are not**. A `tuple` is hashable iff all its elements are.
+An object is hashable if it has a stable `__hash__` and `__eq__`. Rule of thumb: **immutable built-ins are hashable; mutable built-ins are not**. A `tuple` is hashable only when all its elements are.
 ```python
 hash((1, 2, "a"))           # ok
 hash((1, [2]))              # TypeError — list inside is unhashable
