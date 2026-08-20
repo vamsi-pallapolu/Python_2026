@@ -81,6 +81,7 @@ tuple1 = (1, 2,3)
 for i in range(len(tuple1)-1, -1, -1):
     print(tuple1[i])
 
+# Using comprehension
 result = tuple(tuple1[i] for i in range(len(tuple1)-1, -1, -1))
 print(result) # (3, 2, 1)
 
