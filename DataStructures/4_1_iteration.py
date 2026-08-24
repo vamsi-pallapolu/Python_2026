@@ -11,6 +11,10 @@ d = {'one':1, 'two':2}
 for value in d.values():
     print(value)
 
+# Iterate all keys
+for key in d.keys():
+    print(key)
+
 # Iterate key value pairs
 d = {'one':1, 'two':2}
 for key, value in d.items():
