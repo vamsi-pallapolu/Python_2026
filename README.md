@@ -43,3 +43,8 @@ Topic-wise reference, ordered by dependency — earlier topics unlock later ones
 | 6 | [Dictionaries](resources/3_DataStructures/06_Dictionaries.md) | `src/3_DataStructures/4_0_dict.py`, `src/3_DataStructures/4_1_iteration.py`, `src/3_DataStructures/4_2_comprehension.py`, `src/3_DataStructures/4_3_dictmethods.py` |
 | 7 | [Sets](resources/3_DataStructures/07_Sets.md) | `src/3_DataStructures/5_0_set.py`, `src/3_DataStructures/5_1_setmethods.py`, `src/3_DataStructures/5_2_builtinOnSets.py` |
 | — | [Combined Methods Reference](src/3_DataStructures/00_DataStructures_Methods.md) | — |
+
+## Package Management
+| # | Topic | Source file |
+|---|-------|-------------|
+| 1 | [pip](resources/4_Package_Management/01_Pip.md) | — |
