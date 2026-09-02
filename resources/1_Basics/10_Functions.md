@@ -1,145 +1,129 @@
 # Functions
 
-Source: `Basics/8_functions.py`
+Source: `src/1_Basics/8_functions.py`
 
 ## Definition
-A function is a callable object that binds parameters to arguments, executes a body, and returns a value. `def` is a **statement** — at runtime it builds a function object from the body and binds it to the given name in the current namespace. Redefining rebinds.
+A function is a reusable block of code that runs when called.
 
 ```python
-def even_odd(x):
-    return "even" if x % 2 == 0 else "odd"
+def evenOdd(x):
+    if x % 2 == 0:
+        print("Even")
+    else:
+        print("Odd")
 
-even_odd(10)              # 'even'
+
+evenOdd(10)
 ```
 
-`def` executes top-to-bottom; a function defined inside a conditional exists only if that branch runs.
+`def` defines the function. `evenOdd(10)` calls it.
 
 ## Parameters and arguments
-- **Positional** — matched by order.
-- **Keyword** — matched by name; order-independent.
-- **Default** — evaluated once at `def` time (see Gotchas).
-
+Parameters are names in the function definition. Arguments are values passed during the function call.
 ```python
-def student(fname, lname="Unknown"):
+def evenOdd(x):      # x is a parameter
+    ...
+
+evenOdd(10)          # 10 is an argument
+```
+
+## Default arguments
+Default arguments are used when the caller does not provide a value.
+```python
+def fun(arg1, arg2=40):
+    print(arg1)
+    print(arg2)
+
+
+fun(10)
+```
+
+Here, `arg2` uses `40`.
+
+## Keyword arguments
+Keyword arguments pass values by parameter name, so order does not matter.
+```python
+def student(fname, lname):
     print(fname, lname)
 
-student("vamsi")                          # positional
-student(fname="vamsi", lname="p")         # keyword
-student(lname="p", fname="vamsi")         # order irrelevant
+
+student(fname="vamsi", lname="pallapolu")
+student(lname="pallapolu", fname="vamsi")
 ```
 
-## Positional-only `/` and keyword-only `*`
-Markers restrict how arguments may be passed.
+## Arbitrary arguments
+`*args` collects extra positional arguments into a tuple.
 
+`**kwargs` collects extra keyword arguments into a dictionary.
 ```python
-def f(a, b, /, c, *, d, e):
-    ...
-# a, b — positional only     (must NOT use a=..., b=...)
-# c    — positional or keyword
-# d, e — keyword only        (must use d=..., e=...)
+def myFun(*args, **kwargs):
+    print("Extra Args")
+    for arg in args:
+        print(arg)
+
+    print("Extra Keyword Args")
+    for key, value in kwargs.items():
+        print(f"{key} = {value}")
+
+
+myFun("hello", "world", fname="vamsi", lname="pallapolu")
 ```
 
-Use `/` to reserve parameter names for future kwargs; use `*` to force call sites to name arguments for readability.
+## Pass by object reference
+Python passes object references by assignment.
 
-## `*args` and `**kwargs`
-- `*args` — extra positional arguments collected into a **tuple**.
-- `**kwargs` — extra keyword arguments collected into a **dict**.
-
+Mutable objects can be changed inside a function:
 ```python
-def log(*args, **kwargs):
-    print(args, kwargs)
+def myFun(x):
+    x[0] = 20
 
-log("hi", "world", user="v", n=3)
-# ('hi', 'world') {'user': 'v', 'n': 3}
+
+values = [10, 20, 30]
+myFun(values)
+print(values)             # [20, 20, 30]
 ```
 
-Call-site unpacking is the inverse:
+Reassigning a local parameter does not reassign the caller's variable:
 ```python
-log(*["hi", "world"], **{"user": "v"})
+def myFun(a):
+    a = 20
+
+
+a = 10
+myFun(a)
+print(a)                  # 10
 ```
 
-## Parameter order
-Signature order is fixed:
-
-```
-positional  →  *args  →  keyword-only  →  **kwargs
-```
-
+## Assigning a function to a variable
+Functions are objects, so they can be assigned to variables.
 ```python
-def f(a, b=1, *args, key="x", **kwargs): ...
+x = 123
+
+
+def show():
+    x = 90
+    print(x)
+    print(globals()["x"])
+
+
+f = show
+f()
 ```
 
-Only one `*args` and one `**kwargs` per signature.
+`globals()["x"]` accesses the global variable named `x`.
 
 ## Return values
-- No `return`, or bare `return` → returns `None`.
-- Multiple values → returned as a tuple; unpack at the call site.
-
+The source examples print results, but functions can also return values.
 ```python
-def stats(xs):
-    return min(xs), max(xs)             # tuple
-
-lo, hi = stats([3, 1, 2])
+def is_even(x: int) -> bool:
+    return x % 2 == 0
 ```
 
-## How call binding works
-Python is **pass-by-object-reference**. The parameter is a new local name bound to the same object the caller passed. Consequences:
-
-- **Rebinding** the parameter (`x = 20`) affects only the local name.
-- **Mutating** the object (`x.append(1)`, `x[0] = 9`) is visible to the caller.
-
-```python
-def rebind(a):  a = 20                  # local only
-def mutate(x):  x[0] = 20               # caller sees it
-
-n = 10;         rebind(n);   n          # 10
-lst = [10,20];  mutate(lst); lst        # [20, 20]
-```
-
-Immutable objects (`int`, `str`, `tuple`) can't be mutated, so only rebinding is possible.
-
-## Scope
-Names in a function body follow the **LEGB** lookup order: Local → Enclosing → Global → Built-in. Full treatment in [11_Scope_and_Namespaces.md](11_Scope_and_Namespaces.md).
-
-## Lambdas
-A `lambda` is a **single-expression** function object. No statements, no `return` keyword — the expression is the return value.
-
-```python
-square = lambda x: x * x
-sorted(words, key=lambda s: len(s))
-```
-
-Reach for `def` for anything that needs `if/else` blocks, loops, or multiple statements. Deep coverage in [13_Advanced_Functions.md](13_Advanced_Functions.md).
-
-## First-class objects
-Function objects can be assigned, passed, returned, and stored.
-
-```python
-def show(): print("hi")
-
-f = show                                # bind another name
-f()                                     # 'hi'
-
-ops = {"upper": str.upper, "lower": str.lower}
-ops["upper"]("hi")                      # 'HI'
-```
-
-## Type hints
-Annotations declare intended types; the interpreter does not enforce them. Full treatment in [12_Type_Hints.md](12_Type_Hints.md).
-
-```python
-def add(a: int, b: int) -> int:
-    return a + b
-```
+Use `return` when another part of the program needs the result.
 
 ## Gotchas
-- **Mutable default trap** — `def f(x, acc=[])` evaluates `[]` **once** at `def` time; the same list is reused across calls. Use `None` as a sentinel:
-  ```python
-  def f(x, acc=None):
-      if acc is None: acc = []
-      acc.append(x); return acc
-  ```
-- **Unpacking order at call sites** — positionals before `*iter`, keywords before `**mapping`. Duplicate keys across `**` unpackings raise `TypeError`.
-- **`return` vs `yield`** — a function with any `yield` becomes a generator function; calling it returns a generator, it does **not** execute the body.
-- **Reassigning `def` names** — the last `def name` wins; there is no overloading by signature.
-- **Default expressions capture bindings, not values later** — `def f(x=n)` freezes `n`'s current object at `def` time.
+- **A function call needs parentheses** - `f` is the function object, `f()` calls it.
+- **Mutable arguments can be changed inside a function**.
+- **Reassigning a parameter only changes the local name**.
+- **Default argument values are created once** - avoid mutable defaults like `[]`.
+- **Use snake_case for function names** in normal Python style.

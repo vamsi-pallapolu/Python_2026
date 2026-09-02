@@ -1,118 +1,143 @@
 # Data Types
 
-Source: `Basics/5_datatypes.py`
+Source: `src/1_Basics/5_datatypes.py`
 
 ## Definition
-A type defines the set of values an object can hold and the operations valid on it. Python is **dynamically typed** (types are checked at runtime) and **strongly typed** (no implicit coercion between unrelated types — e.g., `"1" + 1` raises `TypeError`). Every value is an object; `type(x)` returns its class.
+A data type describes what kind of value an object holds and what operations it supports.
 
-## Built-in categories
-| Category | Types                              | Mutable? |
-|----------|------------------------------------|----------|
-| Numeric  | `int`, `float`, `complex`, `bool`  | no       |
-| Sequence | `str`, `tuple`, `range`            | no       |
-|          | `list`                             | yes      |
-| Set      | `frozenset`                        | no       |
-|          | `set`                              | yes      |
-| Mapping  | `dict`                             | yes      |
-| Binary   | `bytes`                            | no       |
-|          | `bytearray`, `memoryview`          | yes      |
-| None     | `NoneType`                         | —        |
+Python is dynamically typed, so a variable name can refer to objects of different types over time.
 
-Mutability determines whether an object supports in-place modification and, transitively, whether it is hashable.
-
-## Numeric types
+## Lists
+A `list` is an ordered, mutable collection.
 ```python
-1_000_000               # int — arbitrary precision, no overflow
-2 ** 100                # 1267650600228229401496703205376
-3.14                    # float — IEEE-754 double (64-bit)
-2 + 3j                  # complex
-True, False             # bool — subclass of int (True == 1, False == 0)
+l1 = ["apple", 1, 3.4]
+print(l1)
+
+l1[1] = 5
+print(l1)
 ```
 
-`float` cannot represent most decimals exactly. Compare with tolerance:
+Lists support indexing and item assignment.
+
+## Tuples
+A `tuple` is an ordered, immutable collection.
 ```python
-0.1 + 0.2 == 0.3                    # False
+t = (1, 2, 3)
+print(t[1])        # 2
+```
+
+This is not allowed:
+```python
+t[1] = 4           # TypeError
+```
+
+Use tuples for fixed collections that should not be changed element by element.
+
+## Sets
+A `set` stores unique, unordered elements.
+```python
+chars = {"a", "b", "b", "c"}
+
+for char in chars:
+    print(char)
+```
+
+Duplicate values are removed.
+
+Sets do not support indexing:
+```python
+chars[1]           # TypeError
+```
+
+## Dictionaries
+A `dict` stores key-value pairs.
+```python
+numbers = {1: "One", 2: "two"}
+
+for number in numbers:
+    print(numbers[number])
+```
+
+Iterating over a dictionary directly gives keys.
+
+## Random numbers
+The `random` module provides functions for random values.
+```python
+import random
+
+random.randint(1, 5)       # integer from 1 through 5
+random.uniform(1, 10)      # float from 1 through 10
+```
+
+## Special float values
+```python
 import math
-math.isclose(0.1 + 0.2, 0.3)        # True
+
+print(math.nan)
+print(float("inf"))
+print(float("-inf"))
 ```
 
-Special float values:
+| Value | Meaning |
+|-------|---------|
+| `math.nan` | not a number |
+| `float("inf")` | positive infinity |
+| `float("-inf")` | negative infinity |
+
+## Converting numbers to strings
 ```python
-float("inf"), float("-inf"), float("nan")
-math.isnan(x)           # nan != nan, so compare with isnan
+n = 4
+s = str(n)
+
+m = 2
+s2 = f"{m}"
+
+o = 3
+s3 = "{}".format(o)
 ```
 
-## Sequences
-Ordered, indexable, sliceable. `list` is mutable; `str`, `tuple`, `range` are not.
+Prefer `str(value)` for plain conversion and f-strings when building larger messages.
+
+## Converting strings to integers
 ```python
-[1, 2, 3][0]            # 1
-(1, 2, 3)[-1]           # 3
-"abc"[1:]               # 'bc'
-range(10)[::2]          # range(0, 10, 2)
+s = "123"
+n = int(s)
 ```
 
-## Set and dict
-```python
-{1, 2, 2, 3}            # {1, 2, 3} — unordered, unique
-{"a": 1, "b": 2}["a"]   # 1
-```
-
-`set` and `dict` require **hashable** keys/elements. `dict` preserves insertion order (guaranteed since 3.7).
-
-## `None`
-Singleton sentinel for "no value". Compare with `is`, not `==`.
-```python
-x = None
-if x is None: ...
-```
-
-## Hashability
-An object is hashable if it has a stable `__hash__` and `__eq__`. Rule of thumb: **immutable built-ins are hashable; mutable built-ins are not**. A `tuple` is hashable only when all its elements are.
-```python
-hash((1, 2, "a"))           # ok
-hash((1, [2]))              # TypeError — list inside is unhashable
-{[1, 2]}                    # TypeError
-{(1, 2)}                    # ok
-```
-
-## Type conversion
-Constructors act as converters. They raise `ValueError` (or `TypeError`) on malformed input.
-```python
-int("10")               # 10
-int("10", 2)            # 2 — base parameter
-int(3.9)                # 3 — truncates toward zero
-float("3.14")           # 3.14
-str(42)                 # '42'
-list("abc")             # ['a', 'b', 'c']
-tuple([1, 2])           # (1, 2)
-set("aab")              # {'a', 'b'}
-bool(0), bool(""), bool([])   # all False
-```
-
-Safe conversion pattern:
+Invalid input raises `ValueError`.
 ```python
 try:
+    s = "hello"
     n = int(s)
 except ValueError:
-    n = None
+    print(f'Invalid input "{s}", cannot convert to integer')
 ```
 
-## `type()` vs `isinstance()`
-- `type(x) is T` — exact type match, no subclasses.
-- `isinstance(x, T)` — subclass-aware; also accepts a tuple of types.
+Use `.isdigit()` before converting simple positive integer strings.
 ```python
-isinstance(True, int)       # True — bool subclasses int
-type(True) is int           # False
-isinstance(x, (int, float)) # numeric check
+s1 = "hi"
+
+if s1.isdigit():
+    n = int(s1)
+else:
+    print("The string is not numeric")
 ```
 
-Prefer `isinstance` for type checks; use `type()` only when subclass identity matters.
+## Common types
+| Type | Example | Mutable? |
+|------|---------|----------|
+| `int` | `10` | No |
+| `float` | `3.14` | No |
+| `str` | `"hello"` | No |
+| `list` | `[1, 2, 3]` | Yes |
+| `tuple` | `(1, 2, 3)` | No |
+| `set` | `{1, 2, 3}` | Yes |
+| `dict` | `{"a": 1}` | Yes |
 
 ## Gotchas
-- **`0.1 + 0.2 != 0.3`** — binary floats can't represent decimal tenths. Use `math.isclose` or `decimal.Decimal`.
-- **`True == 1` and `False == 0`** — `bool` is an `int` subclass. `[0, False]` deduplicates via `set` to `{0}`; keys `0` and `False` collide in a `dict`.
-- **`tuple` containing a `list` is not hashable** — hashability is deep.
-- **`int("3.0")` raises `ValueError`** — use `int(float("3.0"))`.
-- **`list("abc")` splits into characters** — pass `[s]` to wrap a single string.
-- **`nan == nan` is `False`** — sort/dedup of collections containing `nan` misbehaves. Use `math.isnan`.
-- **Chained numeric conversion loses precision** — `int(float("999999999999999999"))` != the original.
+- **Lists are mutable** - item assignment works.
+- **Tuples are immutable** - item assignment raises `TypeError`.
+- **Sets are unordered** - do not rely on printed order.
+- **Dictionaries iterate over keys by default**.
+- **`int("hello")` raises `ValueError`**.
+- **`isdigit()` is useful but limited** - it does not handle negatives or decimals.

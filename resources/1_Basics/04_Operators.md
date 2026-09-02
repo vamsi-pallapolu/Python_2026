@@ -1,139 +1,159 @@
 # Operators
 
-Source: `Basics/3_operators.py`
+Source: `src/1_Basics/3_operators.py`
 
 ## Definition
-An operator is a syntactic token that invokes a method on its operands — `a + b` calls `a.__add__(b)` (falling back to `b.__radd__(a)`). Operators are grouped by role: arithmetic, comparison, logical, bitwise, assignment, identity, membership, and a few specialised forms (ternary, unpacking, walrus). Precedence and associativity determine how expressions parse.
+Operators are symbols or keywords that perform operations on values.
 
-## Arithmetic
-| Op   | Meaning        | Example         |
-|------|----------------|-----------------|
-| `+`  | add            | `2 + 3 → 5`     |
-| `-`  | subtract       | `5 - 3 → 2`     |
-| `*`  | multiply       | `2 * 3 → 6`     |
-| `/`  | true division  | `15 / 4 → 3.75` |
-| `//` | floor division | `15 // 4 → 3`   |
-| `%`  | modulo         | `15 % 4 → 3`    |
-| `**` | exponentiation | `3 ** 3 → 27`   |
-
-`//` rounds toward **negative infinity**, not toward zero. `%` has the sign of the divisor. The identity `a == (a // b) * b + (a % b)` always holds.
+## Arithmetic operators
 ```python
--7 // 2                 # -4  (not -3)
--7 %  2                 # 1   (not -1)
-divmod(-7, 2)           # (-4, 1)
+a = 15
+b = 4
+
+print(a / b)      # division: 3.75
+print(a // b)     # floor division: 3
+print(a % b)      # modulus: 3
+print(3 ** 3)     # exponentiation: 27
 ```
 
-`divmod(a, b)` returns `(a // b, a % b)` in one call.
+| Operator | Meaning |
+|----------|---------|
+| `+` | addition |
+| `-` | subtraction |
+| `*` | multiplication |
+| `/` | division |
+| `//` | floor division |
+| `%` | remainder |
+| `**` | exponentiation |
 
-## Comparison
-`<  <=  >  >=  ==  !=` — return `bool`. Chained comparisons desugar into `and`:
+## Comparison operators
+Comparison operators return booleans.
 ```python
-1 < x < 10              # (1 < x) and (x < 10) — x evaluated once
-a == b == c             # (a == b) and (b == c)
+a = 13
+b = 12
+
+print(a < b)      # False
+print(a == b)     # False
+print(a >= b)     # True
 ```
 
-## Logical
-`and`, `or`, `not` short-circuit and **return an operand**, not a coerced `bool`.
+| Operator | Meaning |
+|----------|---------|
+| `<` | less than |
+| `<=` | less than or equal |
+| `>` | greater than |
+| `>=` | greater than or equal |
+| `==` | equal value |
+| `!=` | not equal value |
+
+## Logical operators
 ```python
-0 or "hi"               # 'hi'
-"a" and "b"             # 'b'
-None or []              # []
-not 0                   # True
+a = True
+b = False
+
+print(a and b)    # False
+print(a or b)     # True
+print(not b)      # True
 ```
 
-Common idiom: `name = user_input or "default"`.
+| Operator | Meaning |
+|----------|---------|
+| `and` | true when both sides are true |
+| `or` | true when at least one side is true |
+| `not` | reverses truth value |
 
-## Bitwise
-| Op   | Meaning     |
-|------|-------------|
-| `&`  | AND         |
-| `\|` | OR          |
-| `^`  | XOR         |
-| `~`  | NOT         |
-| `<<` | left shift  |
+## Bitwise operators
+Bitwise operators work on integer bits.
+```python
+5 & 3     # 1
+5 | 3     # 7
+5 ^ 3     # 6
+~5        # -6
+5 << 1    # 10
+5 >> 1    # 2
+```
+
+| Operator | Meaning |
+|----------|---------|
+| `&` | bitwise AND |
+| `|` | bitwise OR |
+| `^` | bitwise XOR |
+| `~` | bitwise NOT |
+| `<<` | left shift |
 | `>>` | right shift |
 
-`~x == -(x + 1)` — two's-complement on arbitrary-precision ints.
-
-## Assignment
-Simple: `=`. Augmented: `+= -= *= /= //= %= **= <<= >>= &= |= ^=`. Augmented forms call `__iadd__` etc. on mutables (in-place) or rebind on immutables.
-
-## Identity
-`is`, `is not` — same object (`id(x) == id(y)`). Reserved for singletons: `None`, `True`, `False`, sentinel objects.
+## Assignment operators
 ```python
-if x is None: ...
-if result is _MISSING: ...
+x = 10
+x += 5      # same as x = x + 5
+x -= 2
+x *= 3
+x /= 2
+x <<= 1
 ```
 
-Never use `is` to compare values — `a = 1000; b = 1000; a is b` is implementation-defined.
+Assignment operators update the variable binding or mutate the target depending on the object and operation.
 
-## Membership
-`in`, `not in` — dispatches to `__contains__`, or iterates via `__iter__`. O(1) for `set`/`dict` (hash lookup), O(n) for `list`/`tuple`/`str` (linear scan; substring for `str`).
+## Identity operators
+Identity checks whether two names refer to the same object.
 ```python
-3 in [1, 2, 3]          # True
-"ab" in "abc"           # True — substring, not element
-"a" in {"a": 1}         # True — checks keys
+a = 10
+b = 20
+c = a
+
+print(a is not b)      # True
+print(a is c)          # True
 ```
 
-## Ternary
+Use `==` for value comparison. Use `is` mainly for identity checks such as `x is None`.
+
+## Membership operators
+Membership checks whether a value exists inside a container.
 ```python
-value = a if cond else b
-```
-Right-associative: `a if p else b if q else c` parses as `a if p else (b if q else c)`.
+x = 24
+my_list = [10, 20, 30, 40]
 
-## Unpacking `*` / `**`
-In **calls**, spread iterables and mappings:
+if x in my_list:
+    print("found")
+else:
+    print("not found")
+```
+
+Operators:
+| Operator | Meaning |
+|----------|---------|
+| `in` | value exists in container |
+| `not in` | value does not exist in container |
+
+## Ternary operator
+Python's conditional expression selects one of two values.
 ```python
-f(*args, **kwargs)
+a, b = 10, 20
+minimum = a if a < b else b
+print(minimum)         # 10
 ```
 
-In **assignment targets**, capture a slice into a list:
+Format:
 ```python
-first, *rest = [1, 2, 3, 4]     # first=1, rest=[2,3,4]
+value_if_true if condition else value_if_false
 ```
 
-In **literals**, splice one collection into another:
+## Precedence and associativity
+Operator precedence decides which operation runs first.
 ```python
-[1, *[2, 3], 4]                 # [1, 2, 3, 4]
-{**a, **b}                      # merge two dicts (b wins on conflict)
+2 ** 3 ** 2      # 512
 ```
 
-## Walrus `:=`
-Named expression — binds and yields the value in place.
+Exponentiation is right-associative:
 ```python
-while (line := f.readline()):
-    process(line)
-
-if (n := len(data)) > 10:
-    print(f"too long: {n}")
+2 ** (3 ** 2)
 ```
 
-## Precedence (high → low)
-```
-**                      right-associative
-unary  +  -  ~
-*  /  //  %  @
-+  -
-<<  >>
-&
-^
-|
-in  not in  is  is not  <  <=  >  >=  !=  ==
-not
-and
-or
-if – else               (ternary)
-lambda
-:=                      (walrus)
-```
-
-`**` is right-associative: `2 ** 3 ** 2 == 2 ** (3 ** 2) == 512`. Bitwise `& ^ |` are three separate tiers — `5 | 1 ^ 4` parses as `5 | (1 ^ 4)` → `5`.
+Use parentheses when readability matters.
 
 ## Gotchas
-- **`is` vs `==` due to interning** — small ints (`-5..256`) and short strings are cached, so `a is b` may look correct. It isn't. Use `==`.
-- **`not x == y` parses as `not (x == y)`** — `not` has lower precedence than `==`.
-- **`not x in y` parses as `not (x in y)`** — write `x not in y` for clarity.
-- **`-2 ** 2 == -4`** — `**` binds tighter than unary minus. Use `(-2) ** 2`.
-- **`a < b < c` evaluates `b` once** — but `a < f() < c` still calls `f()` once. Don't refactor to `a < b and b < c` if `b` has side effects.
-- **`and`/`or` return operands, not `bool`** — `[] or None` is `None`; `1 and 2` is `2`. Wrap in `bool(...)` if you need a boolean.
-- **Augmented assignment on shared mutables** — `a = b = []; a += [1]` mutates the shared list; `b` also sees `[1]`.
+- **`/` always returns a float**.
+- **`//` floors the result**, which matters for negative numbers.
+- **`==` compares values; `is` compares identity**.
+- **Do not name variables `min` or `list`** because that shadows built-ins.
+- **Use parentheses** when an expression mixes several operator groups.

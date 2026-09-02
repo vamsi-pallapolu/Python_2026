@@ -1,142 +1,90 @@
 # Conditional Statements
 
-Source: `Basics/6_Conditional.py`
+Source: `src/1_Basics/6_Conditional.py`
 
 ## Definition
-A conditional statement selects one of several branches based on the truthiness of one or more expressions. Python provides `if / elif / else` (linear branching), the ternary conditional expression `x if cond else y` (branching inside an expression), and `match / case` (structural pattern matching, 3.10+). Blocks are delimited by **indentation**, not braces.
+Conditional statements choose which block of code runs based on a boolean condition.
 
-## `if / elif / else`
-The interpreter evaluates each condition top-to-bottom; the **first truthy** branch runs and the rest are skipped.
-
+## `if`, `elif`, `else`
 ```python
+age = 25
+
 if age <= 12:
     print("Kid")
 elif age <= 19:
-    print("Teenager")
+    print("teenager")
 elif age <= 35:
     print("Young adult")
 else:
     print("Adult")
 ```
 
-- Each branch is a block delimited by indentation (4 spaces by PEP 8).
-- `elif` is a single token; there is no `else if`.
-- `else` is optional; without it and with no match, no branch runs.
+Python checks conditions from top to bottom. The first true branch runs, and the rest are skipped.
 
-## Short-circuit chain evaluation
-Only the conditions up to the first true one are evaluated. Conditions after that are not touched — safe for guarded checks.
-
+## Condition order matters
+For age ranges, start with the smallest upper bound when using `<=`.
 ```python
-if user is not None and user.is_admin:      # user.is_admin never evaluated when user is None
+if age <= 12:
+    ...
+elif age <= 19:
     ...
 ```
 
-## Ternary conditional expression
-An expression (not a statement) that returns one of two values. Evaluation order is `cond → true_branch` or `cond → false_branch`.
+If a broad condition appears first, it can block later conditions.
 
+## Indentation
+Python uses indentation to define blocks.
 ```python
+if age >= 18:
+    print("Adult")
+    print("Can vote")
+```
+
+Both indented lines belong to the `if` block.
+
+## Ternary operator
+Use a conditional expression for simple value selection.
+```python
+age = 19
 voter = "Adult" if age >= 18 else "Minor"
-label = "even" if n % 2 == 0 else "odd"
+print(voter)
 ```
 
-Binds loosely — parenthesize when nesting or combining with other operators.
-
+Format:
 ```python
-score = (100 if perfect else 50) + bonus                # parens for clarity
-tier  = "A" if s >= 90 else "B" if s >= 75 else "C"     # right-associative chain
+value_if_true if condition else value_if_false
 ```
 
-## Guard-clause style
-Prefer early exits over deep nesting. Flat is easier to read and easier to reason about.
+Use this only for short expressions. Use normal `if` / `else` blocks when logic becomes larger.
 
+## `match` / `case`
+Pattern matching is available in Python 3.10 and newer.
 ```python
-def process(user):
-    if user is None:
-        return
-    if not user.active:
-        return
-    ...             # main path, un-indented
+number = 1
+
+match number:
+    case 1:
+        print("one")
+    case 2 | 3:
+        print("Two or Three")
+    case _:
+        print("Other number")
 ```
 
-## `match / case` (3.10+)
-Structural pattern matching. Each `case` is a **pattern**, not just an expression — patterns can destructure, capture, and match by shape.
+`case _` is the default case.
 
-```python
-match command.split():
-    case ["quit"]:                 print("bye")
-    case ["load", path]:           load(path)                # captures 'path'
-    case ["save", *rest]:          save(rest)                # sequence + splat
-    case _:                        print("unknown")          # wildcard
-```
-
-### Literal and OR patterns
-```python
-match status:
-    case 200 | 201 | 204:   print("ok")
-    case 404:               print("not found")
-    case _:                 print("other")
-```
-
-### Capture patterns and the bare-name pitfall
-A **bare name** in a pattern binds a new variable — it does not compare against an existing one. A **dotted name** compares by equality.
-
-```python
-FORBIDDEN = 42
-
-match n:
-    case FORBIDDEN:         # BUG — this binds a new local FORBIDDEN, matches anything
-        print("blocked")
-
-match n:
-    case consts.FORBIDDEN:  # OK — dotted name compares by value
-        print("blocked")
-    case 42:                # OK — literal
-        print("blocked")
-```
-
-### Class patterns
-Match by type and attribute; keyword arguments compare, bare names capture.
-
-```python
-from dataclasses import dataclass
-
-@dataclass
-class Point:
-    x: int
-    y: int
-
-match p:
-    case Point(x=0, y=0):       print("origin")
-    case Point(x=0, y=y):       print(f"on Y at {y}")     # captures y
-    case Point(x=x, y=y):       print(f"({x}, {y})")
-```
-
-### Mapping and sequence patterns
-```python
-match event:
-    case {"type": "click", "x": x, "y": y}:  handle_click(x, y)
-    case {"type": "key", **rest}:            handle_key(rest)     # **rest captures remainder
-
-match seq:
-    case []:              print("empty")
-    case [x]:             print("one", x)
-    case [x, *rest]:      print("head", x, "tail", rest)
-```
-
-### Guards
-Add a boolean condition on top of the pattern with `if`.
-
-```python
-match point:
-    case (x, y) if x == y:   print("diagonal")
-    case (x, y) if x > 0:    print("positive x")
-    case (x, y):             print("other")
-```
+## Common comparison expressions
+| Expression | Meaning |
+|------------|---------|
+| `age >= 18` | age is at least 18 |
+| `age <= 12` | age is at most 12 |
+| `x == y` | values are equal |
+| `x != y` | values are not equal |
+| `x in values` | value exists in a container |
 
 ## Gotchas
-- **Indentation must be consistent** — mixing tabs and spaces raises `TabError`. Stick to spaces (PEP 8: 4).
-- **`is` vs `==` in conditions** — `is` compares identity, `==` compares value. Use `is` only for singletons (`None`, `True`, `False`). `if x is 1000:` may be `False` even when `x == 1000`.
-- **`match` bare names capture, don't compare** — a lone `case NAME:` matches everything and rebinds `NAME`. Use dotted names, literals, or a guard (`case n if n == NAME:`).
-- **Ternary precedence** — `x = a if cond else b + c` parses as `x = a if cond else (b + c)`. Parenthesize when in doubt.
-- **`elif` chains vs multiple `if`s** — separate `if` statements evaluate every condition and can run more than one block; an `elif` chain runs at most one.
-- **No fall-through in `match`** — once a case matches, control leaves the `match`. There is no `switch`-style fall-through.
+- **Use `==` for equality**, not `=`.
+- **Indentation is syntax** in Python.
+- **Branch order matters** when conditions overlap.
+- **The ternary operator is for expressions**, not multi-line logic.
+- **`match` / `case` requires Python 3.10+**.
