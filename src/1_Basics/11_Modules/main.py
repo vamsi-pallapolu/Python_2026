@@ -50,3 +50,7 @@ print(add(2,5)) # 7
 import sys
 for p in sys.path:
     print(p)
+
+import mypkg
+for p in mypkg.__path__:
+    print(p)
