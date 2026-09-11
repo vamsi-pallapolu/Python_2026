@@ -1,108 +1,142 @@
-# Comments & Docstrings
+# Comments and Docstrings
 
 ## Definition
-A **comment** is source text the tokenizer discards — it has no runtime effect. A **docstring** is a real string literal that the compiler attaches to a module, class, or function object as `__doc__` when it appears as the first statement of that body. Comments explain *why*; docstrings document *what* and are queryable at runtime.
+A comment is text in your code that Python ignores.
 
-## Line comments
-Everything from `#` to end-of-line is stripped by the tokenizer. Python has no block-comment syntax.
+A docstring is a string that documents a module, function, class, or method.
+
+Comments are mainly for people reading the code.
+
+Docstrings can also be read by tools such as `help()`.
+
+## Line Comments
+Use `#` for comments.
 
 ```python
-x = 10          # inline comment
-# full-line comment
+# This is a comment
+age = 25
+
+print(age)  # This is an inline comment
 ```
 
-For a multi-line note use consecutive `#` lines. A triple-quoted string on its own is a string *expression* whose result is discarded — legal, but it is not a comment and the parser still evaluates it.
+Python ignores everything after `#` on that line, unless the `#` is inside a string.
 
 ```python
-# For a longer note, use
-# several # lines rather than
-# a triple-quoted string.
+message = "This # is part of the string"
 ```
+
+## Good Comments
+Good comments explain why something is done.
+
+```python
+# Use a timeout so the program does not wait forever.
+response = fetch_data(timeout=10)
+```
+
+Avoid comments that repeat the code.
+
+```python
+# Add 1 to count
+count = count + 1
+```
+
+The code already says that.
+
+## Multi-Line Comments
+Python does not have a special block comment syntax.
+
+Use several `#` lines.
+
+```python
+# This section validates user input before saving.
+# Invalid records are skipped and reported later.
+```
+
+Do not use triple-quoted strings as comments. They are strings, not real comments.
 
 ## Docstrings
-The **first statement** of a module, class, function, or method — if it is a string literal — is bound to that object's `__doc__` attribute. Anything later, even another string literal, is not a docstring.
+A docstring is the first statement inside a module, function, class, or method.
 
 ```python
 def add(a, b):
     """Return the sum of a and b."""
     return a + b
-
-add.__doc__          # 'Return the sum of a and b.'
-help(add)            # prints signature + docstring via pydoc
 ```
 
-## PEP 257 conventions
-- One-liner: fits one line, imperative mood, ends with a period.
-- Multi-line: summary line → blank line → body → optional sections. Closing `"""` on its own line.
+You can view the docstring with `help()`.
 
 ```python
-def fetch_user(user_id):
-    """Fetch a user by ID from the primary database.
+help(add)
+```
 
-    Args:
-        user_id: The user's integer ID.
+You can also access it with `.__doc__`.
 
-    Returns:
-        A User instance, or None if not found.
+```python
+print(add.__doc__)
+```
+
+## Function Docstrings
+A short function can use a one-line docstring.
+
+```python
+def square(number):
+    """Return number multiplied by itself."""
+    return number * number
+```
+
+A longer function can use a multi-line docstring.
+
+```python
+def divide(a, b):
+    """Return a divided by b.
 
     Raises:
-        DatabaseError: If the connection fails.
+        ZeroDivisionError: If b is zero.
     """
-    ...
+    return a / b
 ```
 
-## Docstring styles
-Sphinx, IDEs, and doc generators parse these. Pick one per project.
-
-| Style | Section markers |
-|-------|-----------------|
-| Google | `Args:`, `Returns:`, `Raises:` |
-| NumPy  | `Parameters` / `Returns` under `----------` |
-| reST   | `:param x:`, `:returns:`, `:raises:` |
-
-## `help()` and `pydoc`
-`help(obj)` walks the MRO and prints the object's signature plus `__doc__`. `pydoc` (CLI: `python -m pydoc name`) uses the same machinery to render HTML or terminal docs.
-
-## `doctest` — executable examples
-The `doctest` module scans docstrings for interactive-session lines (`>>>`) and runs them as tests.
+## Module Docstrings
+A module docstring appears at the top of a file.
 
 ```python
-def add(a, b):
-    """Return the sum.
+"""Utilities for formatting user names."""
 
-    >>> add(2, 3)
-    5
-    """
-    return a + b
-
-# python -m doctest module.py -v
+def format_name(first, last):
+    return f"{first} {last}"
 ```
 
-## Directive-style comments
-Some `#`-comments are read by external tools even though Python ignores them.
+## Class Docstrings
+A class docstring explains what the class represents.
 
 ```python
-#!/usr/bin/env python3       # shebang — the OS uses this to pick the interpreter
-# -*- coding: utf-8 -*-      # PEP 263 source encoding (default is utf-8 since 3.0)
-x: int = "oops"  # type: ignore   # silence a type checker on this line
-import os  # noqa: F401           # tell flake8/ruff to skip a rule
-# fmt: off                        # black/ruff-format: preserve manual formatting
-# fmt: on
+class User:
+    """Represent a user account."""
+
+    def __init__(self, name):
+        self.name = name
 ```
 
-## `from __future__ import annotations`
-Not a comment, but a directive-shaped statement: it changes how the compiler treats annotations (they become strings, evaluated lazily). Must appear before any non-docstring code.
+## Tool Comments
+Some comments are read by tools even though Python itself ignores them.
 
 ```python
-from __future__ import annotations
-
-def head(xs: list[int]) -> int:   # 'list[int]' stored as a string, not evaluated
-    return xs[0]
+#!/usr/bin/env python3
+# type: ignore
+# noqa: F401
 ```
 
-## Gotchas
-- **Docstring must be the first statement** — placing it after imports, `if TYPE_CHECKING:`, or logic makes it a discarded expression, not `__doc__`.
-- **Triple-quoted strings are not comments** — they are string literals. In an expression position they build a `str` object; only in the docstring position are they attached to `__doc__`.
-- **`#` inside a string literal is not a comment** — `"price: #1"` is a plain string. Comments are recognized by the tokenizer only outside strings.
-- **Explain *why*, not *what*** — if a comment paraphrases the code, rename the variable or extract a function instead. Reserve comments for constraints, invariants, workarounds, and links to issues.
-- **Docstrings survive `python -O`; `assert` does not** — never rely on `assert` for runtime checks that must stick, but docstring-based tools keep working.
+These should be used only when needed.
+
+## Common Mistakes
+- Writing comments that only repeat the code.
+- Forgetting that a docstring must be the first statement.
+- Using triple-quoted strings as normal comments.
+- Leaving outdated comments after changing code.
+- Writing too many comments instead of clearer code.
+
+## Summary
+- Use `#` for comments.
+- Comments should explain why, not repeat what.
+- Use docstrings to document modules, functions, classes, and methods.
+- `help()` can show docstrings.

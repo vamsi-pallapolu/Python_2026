@@ -3,141 +3,173 @@
 Source: `src/1_Basics/5_datatypes.py`
 
 ## Definition
-A data type describes what kind of value an object holds and what operations it supports.
+A data type describes what kind of value something is and what operations it supports.
 
-Python is dynamically typed, so a variable name can refer to objects of different types over time.
-
-## Lists
-A `list` is an ordered, mutable collection.
 ```python
-l1 = ["apple", 1, 3.4]
-print(l1)
-
-l1[1] = 5
-print(l1)
+age = 25
+name = "Vamsi"
+price = 19.99
 ```
 
-Lists support indexing and item assignment.
+Python is dynamically typed, so the variable name does not need a declared type.
+
+## Common Built-in Types
+| Type | Example | Meaning |
+|------|---------|---------|
+| `int` | `10` | whole number |
+| `float` | `3.14` | decimal number |
+| `str` | `"hello"` | text |
+| `bool` | `True` | true or false |
+| `list` | `[1, 2, 3]` | ordered, changeable collection |
+| `tuple` | `(1, 2, 3)` | ordered, unchangeable collection |
+| `set` | `{1, 2, 3}` | unique unordered values |
+| `dict` | `{"name": "Vamsi"}` | key-value pairs |
+| `NoneType` | `None` | no value |
+
+## Numbers
+Integers store whole numbers.
+
+```python
+count = 10
+```
+
+Floats store decimal numbers.
+
+```python
+price = 19.99
+```
+
+Basic math works with both:
+
+```python
+print(10 + 5)
+print(10 / 4)
+```
+
+## Strings
+A string stores text.
+
+```python
+name = "Python"
+message = 'Hello'
+```
+
+Strings are ordered, so you can access characters by index.
+
+```python
+word = "Python"
+print(word[0])
+print(word[-1])
+```
+
+Output:
+
+```text
+P
+n
+```
+
+Strings are immutable. You cannot change one character in place.
+
+## Lists
+A list is an ordered, mutable collection.
+
+```python
+items = ["apple", "banana", "orange"]
+
+print(items[0])
+items[1] = "grape"
+print(items)
+```
+
+Lists are useful when you need to add, remove, or change items.
 
 ## Tuples
-A `tuple` is an ordered, immutable collection.
+A tuple is ordered but immutable.
+
 ```python
-t = (1, 2, 3)
-print(t[1])        # 2
+point = (10, 20)
+
+print(point[0])
 ```
 
 This is not allowed:
+
 ```python
-t[1] = 4           # TypeError
+point[0] = 99  # TypeError
 ```
 
-Use tuples for fixed collections that should not be changed element by element.
+Use tuples for fixed groups of values.
 
 ## Sets
-A `set` stores unique, unordered elements.
-```python
-chars = {"a", "b", "b", "c"}
+A set stores unique values.
 
-for char in chars:
-    print(char)
+```python
+colors = {"red", "blue", "red"}
+print(colors)
 ```
 
-Duplicate values are removed.
+The duplicate `"red"` is stored only once.
 
-Sets do not support indexing:
-```python
-chars[1]           # TypeError
-```
+Sets are unordered, so do not use indexes with them.
 
 ## Dictionaries
-A `dict` stores key-value pairs.
-```python
-numbers = {1: "One", 2: "two"}
+A dictionary stores key-value pairs.
 
-for number in numbers:
-    print(numbers[number])
+```python
+person = {
+    "name": "Vamsi",
+    "age": 25,
+}
+
+print(person["name"])
 ```
 
-Iterating over a dictionary directly gives keys.
+Use dictionaries when each value has a label.
 
-## Random numbers
-The `random` module provides functions for random values.
+## Type Conversion
+Convert values with functions such as `str()`, `int()`, and `float()`.
+
 ```python
-import random
+age_text = "25"
+age = int(age_text)
 
-random.randint(1, 5)       # integer from 1 through 5
-random.uniform(1, 10)      # float from 1 through 10
+print(age + 1)
 ```
 
-## Special float values
-```python
-import math
+Invalid conversion raises `ValueError`.
 
-print(math.nan)
-print(float("inf"))
-print(float("-inf"))
+```python
+int("hello")  # ValueError
 ```
 
-| Value | Meaning |
-|-------|---------|
-| `math.nan` | not a number |
-| `float("inf")` | positive infinity |
-| `float("-inf")` | negative infinity |
+## Checking Types
+Use `type()` to see the exact type.
 
-## Converting numbers to strings
 ```python
-n = 4
-s = str(n)
-
-m = 2
-s2 = f"{m}"
-
-o = 3
-s3 = "{}".format(o)
+print(type(10))
+print(type("hello"))
 ```
 
-Prefer `str(value)` for plain conversion and f-strings when building larger messages.
+Use `isinstance()` to check whether a value belongs to a type.
 
-## Converting strings to integers
 ```python
-s = "123"
-n = int(s)
+value = 10
+
+if isinstance(value, int):
+    print("integer")
 ```
 
-Invalid input raises `ValueError`.
-```python
-try:
-    s = "hello"
-    n = int(s)
-except ValueError:
-    print(f'Invalid input "{s}", cannot convert to integer')
-```
+## Common Mistakes
+- Trying to change a tuple or string in place.
+- Expecting sets to keep a reliable order.
+- Forgetting that dictionary lookup by a missing key raises `KeyError`.
+- Converting invalid text with `int()` or `float()`.
+- Confusing the string `"10"` with the number `10`.
 
-Use `.isdigit()` before converting simple positive integer strings.
-```python
-s1 = "hi"
-
-if s1.isdigit():
-    n = int(s1)
-else:
-    print("The string is not numeric")
-```
-
-## Common types
-| Type | Example | Mutable? |
-|------|---------|----------|
-| `int` | `10` | No |
-| `float` | `3.14` | No |
-| `str` | `"hello"` | No |
-| `list` | `[1, 2, 3]` | Yes |
-| `tuple` | `(1, 2, 3)` | No |
-| `set` | `{1, 2, 3}` | Yes |
-| `dict` | `{"a": 1}` | Yes |
-
-## Gotchas
-- **Lists are mutable** - item assignment works.
-- **Tuples are immutable** - item assignment raises `TypeError`.
-- **Sets are unordered** - do not rely on printed order.
-- **Dictionaries iterate over keys by default**.
-- **`int("hello")` raises `ValueError`**.
-- **`isdigit()` is useful but limited** - it does not handle negatives or decimals.
+## Summary
+- Every value in Python has a type.
+- Common types include numbers, strings, lists, tuples, sets, dictionaries, booleans, and `None`.
+- Lists and dictionaries are mutable.
+- Strings and tuples are immutable.
+- Use conversion functions when you need a different type.

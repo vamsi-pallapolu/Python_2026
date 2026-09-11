@@ -3,127 +3,180 @@
 Source: `src/1_Basics/8_functions.py`
 
 ## Definition
-A function is a reusable block of code that runs when called.
+A function is a reusable block of code.
+
+Define a function with `def`.
 
 ```python
-def evenOdd(x):
-    if x % 2 == 0:
-        print("Even")
-    else:
-        print("Odd")
-
-
-evenOdd(10)
+def greet():
+    print("Hello")
 ```
 
-`def` defines the function. `evenOdd(10)` calls it.
+Call a function with parentheses.
 
-## Parameters and arguments
-Parameters are names in the function definition. Arguments are values passed during the function call.
 ```python
-def evenOdd(x):      # x is a parameter
-    ...
-
-evenOdd(10)          # 10 is an argument
+greet()
 ```
 
-## Default arguments
-Default arguments are used when the caller does not provide a value.
+## Parameters and Arguments
+Parameters are names in the function definition.
+
+Arguments are values passed to the function.
+
 ```python
-def fun(arg1, arg2=40):
-    print(arg1)
-    print(arg2)
+def greet(name):
+    print(f"Hello, {name}")
 
-
-fun(10)
+greet("Vamsi")
 ```
 
-Here, `arg2` uses `40`.
+Here, `name` is a parameter and `"Vamsi"` is an argument.
 
-## Keyword arguments
-Keyword arguments pass values by parameter name, so order does not matter.
+## Return Values
+Use `return` to send a result back to the caller.
+
 ```python
-def student(fname, lname):
-    print(fname, lname)
+def add(a, b):
+    return a + b
 
-
-student(fname="vamsi", lname="pallapolu")
-student(lname="pallapolu", fname="vamsi")
+result = add(2, 3)
+print(result)
 ```
 
-## Arbitrary arguments
+Output:
+
+```text
+5
+```
+
+If a function has no `return`, it returns `None`.
+
+## Default Arguments
+A default argument is used when the caller does not provide a value.
+
+```python
+def greet(name="friend"):
+    print(f"Hello, {name}")
+
+greet()
+greet("Vamsi")
+```
+
+Output:
+
+```text
+Hello, friend
+Hello, Vamsi
+```
+
+## Keyword Arguments
+Keyword arguments pass values by parameter name.
+
+```python
+def student(first_name, last_name):
+    print(first_name, last_name)
+
+student(first_name="Vamsi", last_name="Pallapothu")
+student(last_name="Pallapothu", first_name="Vamsi")
+```
+
+Keyword arguments make calls easier to read and allow flexible ordering.
+
+## Positional Arguments
+Positional arguments are matched by order.
+
+```python
+def divide(a, b):
+    return a / b
+
+print(divide(10, 2))
+```
+
+Here, `10` becomes `a` and `2` becomes `b`.
+
+## `*args` and `**kwargs`
 `*args` collects extra positional arguments into a tuple.
 
+```python
+def show_args(*args):
+    print(args)
+
+show_args(1, 2, 3)
+```
+
 `**kwargs` collects extra keyword arguments into a dictionary.
+
 ```python
-def myFun(*args, **kwargs):
-    print("Extra Args")
-    for arg in args:
-        print(arg)
+def show_kwargs(**kwargs):
+    print(kwargs)
 
-    print("Extra Keyword Args")
-    for key, value in kwargs.items():
-        print(f"{key} = {value}")
-
-
-myFun("hello", "world", fname="vamsi", lname="pallapolu")
+show_kwargs(name="Vamsi", age=25)
 ```
 
-## Pass by object reference
-Python passes object references by assignment.
+Advanced uses are covered in [13_Advanced_Functions.md](13_Advanced_Functions.md).
 
-Mutable objects can be changed inside a function:
+## Mutable Arguments
+Python passes object references to functions.
+
+If the object is mutable, the function can change it.
+
 ```python
-def myFun(x):
-    x[0] = 20
+def change_first(items):
+    items[0] = "changed"
 
+values = ["a", "b", "c"]
+change_first(values)
 
-values = [10, 20, 30]
-myFun(values)
-print(values)             # [20, 20, 30]
+print(values)
 ```
 
-Reassigning a local parameter does not reassign the caller's variable:
-```python
-def myFun(a):
-    a = 20
+Output:
 
-
-a = 10
-myFun(a)
-print(a)                  # 10
+```text
+['changed', 'b', 'c']
 ```
 
-## Assigning a function to a variable
+Reassigning the parameter itself does not reassign the caller's variable.
+
+```python
+def change_number(number):
+    number = 99
+
+x = 10
+change_number(x)
+
+print(x)
+```
+
+Output:
+
+```text
+10
+```
+
+## Functions as Objects
 Functions are objects, so they can be assigned to variables.
+
 ```python
-x = 123
+def say_hi():
+    print("Hi")
 
-
-def show():
-    x = 90
-    print(x)
-    print(globals()["x"])
-
-
-f = show
-f()
+func = say_hi
+func()
 ```
 
-`globals()["x"]` accesses the global variable named `x`.
+`func` now refers to the same function as `say_hi`.
 
-## Return values
-The source examples print results, but functions can also return values.
-```python
-def is_even(x: int) -> bool:
-    return x % 2 == 0
-```
+## Common Mistakes
+- Forgetting parentheses when calling a function.
+- Printing a value when the caller needs the function to return it.
+- Using mutable default values such as `[]` or `{}`.
+- Changing a mutable argument by accident.
+- Using unclear function names.
 
-Use `return` when another part of the program needs the result.
-
-## Gotchas
-- **A function call needs parentheses** - `f` is the function object, `f()` calls it.
-- **Mutable arguments can be changed inside a function**.
-- **Reassigning a parameter only changes the local name**.
-- **Default argument values are created once** - avoid mutable defaults like `[]`.
-- **Use snake_case for function names** in normal Python style.
+## Summary
+- Use `def` to define a function.
+- Use parentheses to call a function.
+- Parameters receive arguments.
+- Use `return` to send back a result.
+- Functions help organize and reuse code.

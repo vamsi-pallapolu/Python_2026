@@ -3,127 +3,150 @@
 Source: `src/1_Basics/10_Files/1_open.py`
 
 ## Definition
-File I/O means reading from and writing to files. Python's built-in `open()` returns a file object.
+File I/O means reading from and writing to files.
 
-The source file uses `pathlib.Path` to build paths relative to the Python file.
+Python uses `open()` to open files.
 
-## Building file paths with `pathlib`
+```python
+file = open("data.txt")
+```
+
+Most of the time, you should open files with `with`.
+
+```python
+with open("data.txt") as file:
+    data = file.read()
+```
+
+The file closes automatically when the `with` block ends.
+
+## File Paths
+Use `pathlib.Path` to work with file paths.
+
 ```python
 from pathlib import Path
 
-current_file = Path(__file__)
-print(f"Current file path:{current_file}")
-
 current_dir = Path(__file__).resolve().parent
-data_file = current_dir / "data_file1.txt"
+data_file = current_dir / "data.txt"
 ```
 
-`Path(__file__)` represents the current Python file. `.resolve().parent` gives the directory that contains it.
+`Path(__file__)` represents the current Python file.
 
-Use `/` with `Path` objects to join path parts.
+`.parent` gets the folder containing the file.
 
-## Opening a file for writing
+The `/` operator joins path parts.
+
+## Opening Files
+Use `open(path, mode)` to open a file.
+
 ```python
-try:
-    file = open(data_file, "w")
-except FileNotFoundError as e:
-    print("Error occured while opening the file:", e)
-finally:
-    file.close()
+with open("data.txt", "r") as file:
+    data = file.read()
 ```
 
-Mode `"w"` opens a file for writing. It creates the file if needed and truncates the file if it already exists.
+The mode tells Python what you want to do.
 
-## Common file modes
+## Common File Modes
 | Mode | Meaning |
 |------|---------|
-| `"r"` | read; file must exist |
-| `"w"` | write; create or truncate |
-| `"a"` | append; create if missing |
-| `"x"` | create; fail if file exists |
+| `"r"` | read text; file must exist |
+| `"w"` | write text; create or replace |
+| `"a"` | append text; create if missing |
+| `"x"` | create text; fail if file exists |
 | `"rb"` | read binary |
 | `"wb"` | write binary |
 
-## Reading a file
-```python
-data_file = current_dir / "data_file.txt"
+## Reading a Whole File
+Use `.read()` to read the whole file as one string.
 
-try:
-    file = open(data_file, "r")
+```python
+with open("data.txt", "r", encoding="utf-8") as file:
     data = file.read()
-    print(f"Type of data:{type(data)}")
-    for line in data:
-        print(line, end="")
-    print()
-except FileNotFoundError as e:
-    print(e)
-finally:
-    file.close()
+
+print(data)
 ```
 
-`read()` returns the full file contents as one string in text mode.
+Use this when the file is small enough to fit comfortably in memory.
 
-Note that looping over `data` loops character by character because `data` is a string.
+## Reading Line by Line
+Loop over the file object to read one line at a time.
 
-For line-by-line reading, loop over the file object:
 ```python
-with open(data_file, "r") as file:
+with open("data.txt", "r", encoding="utf-8") as file:
     for line in file:
         print(line, end="")
 ```
 
-## Appending to a file
-```python
-data_file = current_dir / "append_file.txt"
+Each `line` includes the newline character at the end, unless it is the last line and the file does not end with one.
 
+Use `.strip()` to remove surrounding whitespace.
+
+```python
+clean_line = line.strip()
+```
+
+## Writing to a File
+Use mode `"w"` to write.
+
+```python
+with open("output.txt", "w", encoding="utf-8") as file:
+    file.write("Hello\n")
+    file.write("World\n")
+```
+
+`write()` does not add a newline automatically.
+
+Mode `"w"` replaces the existing file contents.
+
+## Appending to a File
+Use mode `"a"` to add to the end of a file.
+
+```python
+with open("log.txt", "a", encoding="utf-8") as file:
+    file.write("Program started\n")
+```
+
+Appending keeps the existing content.
+
+## Handling Missing Files
+Reading a missing file raises `FileNotFoundError`.
+
+```python
 try:
-    file = open(data_file, "a")
-    file.write("Appending a line\n")
-    file.write("Appendinf another line")
-except FileNotFoundError as e:
-    print(e)
-```
-
-Mode `"a"` writes at the end of the file. `write()` does not add a newline automatically.
-
-## Closing files
-Files should be closed after use.
-```python
-file.close()
-```
-
-The preferred pattern is a `with` block:
-```python
-with open(data_file, "r") as file:
-    for char in file.read():
-        print(char, end="")
-```
-
-The file closes automatically when the `with` block exits.
-
-## Safer version
-```python
-from pathlib import Path
-
-current_dir = Path(__file__).resolve().parent
-data_file = current_dir / "data_file.txt"
-
-try:
-    with open(data_file, "r", encoding="utf-8") as file:
+    with open("missing.txt", "r", encoding="utf-8") as file:
         data = file.read()
-except FileNotFoundError as e:
-    print(e)
-else:
-    print(data)
+except FileNotFoundError:
+    print("File not found")
 ```
 
-Passing `encoding="utf-8"` makes text behavior more predictable across operating systems.
+## Text and Binary Files
+Text mode works with strings.
 
-## Gotchas
-- **Mode `"w"` truncates existing files**.
-- **Mode `"a"` appends to the end**.
-- **`read()` returns a string in text mode**.
-- **Looping over a string gives characters**, not lines.
-- **`write()` does not add newlines**.
-- **Use `with open(...)`** so files close automatically.
-- **Pass `encoding="utf-8"`** for text files.
+```python
+with open("notes.txt", "r", encoding="utf-8") as file:
+    text = file.read()
+```
+
+Binary mode works with bytes.
+
+```python
+with open("image.png", "rb") as file:
+    data = file.read()
+```
+
+Use binary mode for images, PDFs, audio files, and other non-text data.
+
+## Common Mistakes
+- Forgetting to close a file. Use `with`.
+- Using mode `"w"` and accidentally replacing a file.
+- Forgetting that `write()` does not add newlines.
+- Looping over a string from `.read()` and expecting lines.
+- Not passing `encoding="utf-8"` for text files.
+- Reading a very large file all at once.
+
+## Summary
+- Use `open()` to work with files.
+- Prefer `with open(...)` so files close automatically.
+- Use `"r"` to read, `"w"` to write, and `"a"` to append.
+- Use `encoding="utf-8"` for text files.
+- Loop over the file object for line-by-line reading.

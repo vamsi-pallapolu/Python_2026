@@ -1,104 +1,212 @@
-# Modules & Imports
+# Modules and Imports
 
 ## Definition
-A **module** is a single `.py` file. A **package** is a directory of modules. Both are units of code reuse: importing binds names from another file into the current namespace.
+A module is a Python file.
 
-## Import forms
+For example, `math_utils.py` is a module.
+
+A package is a folder that contains Python modules.
+
+Imports let you reuse code from another file or library.
+
+## Importing a Module
+Use `import` to load a module.
+
 ```python
-import math                     # bind module object as `math`
-math.sqrt(16)
+import math
 
-from math import sqrt, pi       # bind names directly
-sqrt(16)
-
-import numpy as np              # rename on import
-from math import sqrt as sq
-```
-`import x` keeps the origin visible at each call site. `from x import y` is shorter but drops that trace and rebinds `y` locally.
-
-## Star imports
-```python
-from math import *              # imports every public name
-```
-Discouraged in modules and libraries: it hides the source of each name and can shadow builtins. A module can restrict what `*` exposes:
-```python
-__all__ = ["greet", "VERSION"]  # only these are pulled in by `import *`
+print(math.sqrt(16))
 ```
 
-## `if __name__ == "__main__":`
-Every module has a `__name__` attribute. It is `"__main__"` when the file is run directly and the module's dotted name when imported. A module's top-level code executes on import; the guard confines script-only side effects.
+Output:
+
+```text
+4.0
+```
+
+When you use `import math`, you access names through `math`.
+
+## Importing Specific Names
+Use `from ... import ...` to import a specific name.
+
 ```python
-# hello.py
+from math import sqrt
+
+print(sqrt(16))
+```
+
+This is shorter, but the module name is no longer visible at the call site.
+
+## Import Aliases
+Use `as` to give an import a shorter name.
+
+```python
+import math as m
+
+print(m.sqrt(16))
+```
+
+This is common with large libraries.
+
+```python
+import numpy as np
+import pandas as pd
+```
+
+## Creating Your Own Module
+Suppose you have a file named `helpers.py`.
+
+```python
 def greet(name):
     return f"Hello, {name}"
+```
+
+You can import it from another file in the same folder.
+
+```python
+import helpers
+
+print(helpers.greet("Vamsi"))
+```
+
+Or import the function directly.
+
+```python
+from helpers import greet
+
+print(greet("Vamsi"))
+```
+
+## Top-Level Code Runs on Import
+Python runs top-level code when a module is imported.
+
+```python
+# helpers.py
+print("Loading helpers")
+
+def greet(name):
+    return f"Hello, {name}"
+```
+
+If another file imports `helpers`, `"Loading helpers"` is printed.
+
+Keep top-level code small.
+
+## The `__name__` Check
+Use this pattern for code that should run only when the file is executed directly.
+
+```python
+def main():
+    print("Run program")
 
 if __name__ == "__main__":
-    print(greet("World"))       # runs only via `python hello.py`
+    main()
 ```
+
+If the file is imported, `main()` does not run automatically.
 
 ## Packages
-A directory is a **regular package** if it contains `__init__.py`. That file runs once on first import and can expose package-level names.
-```
+A package is a folder of modules.
+
+Example:
+
+```text
 myapp/
     __init__.py
-    utils/
-        __init__.py
-        strings.py
+    helpers.py
+    main.py
 ```
-A directory without `__init__.py` is a **namespace package** (PEP 420). Namespace packages can span multiple directories on `sys.path`; they have no init code.
 
-## Absolute vs relative imports
+`__init__.py` marks the folder as a regular package.
+
+You can import from the package:
+
 ```python
-# inside myapp/utils/strings.py
-from myapp.utils import math    # absolute — preferred by PEP 8
-from . import math              # relative — sibling module
-from ..config import DEFAULTS   # relative — parent package
+from myapp.helpers import greet
 ```
-Relative imports resolve against `__package__`. They only work when the file is imported as part of a package; running it directly (`python strings.py`) makes `__package__` empty and relative imports raise `ImportError`. Use `python -m myapp.utils.strings` instead.
 
-## Running a package
-```bash
-python -m myapp                 # executes myapp/__main__.py
+## Absolute Imports
+Absolute imports start from the package name.
+
+```python
+from myapp.helpers import greet
 ```
-`-m` sets `__package__` correctly, so relative imports resolve.
 
-## The import path
-`sys.path` is searched in order:
-1. Directory of the script (or `""` for interactive sessions).
-2. Entries in `PYTHONPATH`.
-3. Installation defaults (stdlib, then `site-packages`).
+These are usually easiest to understand.
 
-## Module cache — `sys.modules`
-The first import executes the file and stores the resulting module object in `sys.modules`. Every later `import` returns the cached object without re-executing.
+## Relative Imports
+Relative imports use dots.
+
+```python
+from .helpers import greet
+from ..config import settings
+```
+
+Relative imports are used inside packages.
+
+They usually do not work when you run a file directly with `python file.py`.
+
+Use `python -m package.module` instead.
+
+## Import Search Path
+Python searches for modules using `sys.path`.
+
 ```python
 import sys
-"math" in sys.modules           # True after first import
-```
-This is why editing a module in a running REPL has no effect until reload.
 
-## Dynamic and reload
-```python
-import importlib
-mod = importlib.import_module("myapp.utils.strings")   # dynamic import
-importlib.reload(mod)                                  # re-run the file
+print(sys.path)
 ```
-`reload` re-executes the module and rebinds its attributes in place, but existing references (e.g. `from mod import fn`) still point at the old objects.
 
-## Import order (PEP 8)
-Group imports, separated by blank lines:
+It usually includes:
+
+1. the script's folder
+2. paths from `PYTHONPATH`
+3. standard library folders
+4. installed package folders
+
+## Import Style
+PEP 8 recommends grouping imports like this:
+
 ```python
-import os                       # 1. stdlib
+import os
 import sys
 
-import requests                 # 2. third-party
+import requests
 
-from .helpers import fetch      # 3. local / same package
+from myapp.helpers import greet
 ```
 
-## Gotchas
-- **Circular imports** — `a` imports `b`, `b` imports `a`. One side sees a **partially initialized** module. Defer by moving the import inside a function, or use `if TYPE_CHECKING:` for type-only imports.
-- **`from x import y` binds by value at import time.** Rebinding `x.y` afterwards does not update the local `y`.
-- **Missing guard** — top-level side effects run every time the module is imported, not just when executed as a script.
-- **Star imports shadow silently** — no warning when `from math import *` overwrites your `pow`.
-- **Heavy top-level code slows startup** — every importer pays the cost. Push work into functions.
-- **Namespace packages don't run init code** — if you need setup on import, use a regular package.
+Groups:
+
+1. standard library imports
+2. third-party imports
+3. local project imports
+
+## Star Imports
+Avoid star imports in normal code.
+
+```python
+from math import *
+```
+
+This imports many names at once and makes it harder to see where a name came from.
+
+Prefer explicit imports.
+
+```python
+from math import sqrt, pi
+```
+
+## Common Mistakes
+- Putting important work at the top level of a module.
+- Forgetting the `if __name__ == "__main__":` guard.
+- Using star imports.
+- Creating circular imports, where two modules import each other.
+- Running a package file directly when it needs relative imports.
+
+## Summary
+- A module is a `.py` file.
+- A package is a folder of modules.
+- Use imports to reuse code.
+- Prefer clear, explicit imports.
+- Use the `__name__` guard for script-only code.

@@ -3,80 +3,120 @@
 Source: `src/1_Basics/1_io.py`
 
 ## Definition
-Input/output is how a program receives data and shows results. In Python, the basic tools are:
+Input/output is how a program receives data and shows results.
 
-- `input()` to read text from the user
-- `print()` to display output
+In basic Python programs:
 
-`input()` always returns a string, even when the user types a number.
+- `input()` reads text from the user
+- `print()` displays output
 
-## Reading one value
+## Printing Output
+Use `print()` to show values.
+
 ```python
-name = input("Enter name:")
-print(f"Hello, {name}")
+print("Hello")
+print(10)
+print(2 + 3)
 ```
 
-The prompt is shown first. After the user presses Enter, the typed text is stored in `name`.
+`print()` can show multiple values.
 
-## Printing values
 ```python
-name = "vamsi"
+name = "Vamsi"
 age = 25
-city = "NewYork"
 
-print(name, age, city)
+print(name, age)
 ```
 
-`print()` can receive multiple values. By default, it separates them with a space and ends with a newline.
+Output:
 
-## F-strings
-F-strings are the preferred way to format values inside strings.
+```text
+Vamsi 25
+```
+
+By default, `print()` adds a space between values and a newline at the end.
+
+## Reading Input
+Use `input()` to read from the keyboard.
+
 ```python
-name = "vamsi"
-print(f"Hello, {name}")
+name = input("Enter your name: ")
+print("Hello", name)
 ```
 
-The expression inside `{}` is evaluated and inserted into the string.
+The text inside `input()` is the prompt shown to the user.
 
-## Reading multiple values
-Use `.split()` to separate one input line into multiple parts.
+## Input Is Always a String
+`input()` always returns a string.
+
 ```python
-x, y = input("Enter numbers").split()
-print(x, y)
+age = input("Enter your age: ")
+print(type(age))
 ```
 
-If the user types:
+Even if the user types `25`, the value is `"25"`, not the integer `25`.
+
+Convert it before doing math.
+
+```python
+age = int(input("Enter your age: "))
+print(age + 1)
+```
+
+## Common Conversions
+| Function | Example | Result |
+|----------|---------|--------|
+| `str(x)` | `str(10)` | `"10"` |
+| `int(x)` | `int("10")` | `10` |
+| `float(x)` | `float("3.5")` | `3.5` |
+
+## F-Strings
+F-strings are a clear way to place values inside strings.
+
+```python
+name = "Vamsi"
+age = 25
+
+print(f"{name} is {age} years old")
+```
+
+Output:
+
+```text
+Vamsi is 25 years old
+```
+
+## Reading Multiple Values
+Use `.split()` to split one line into pieces.
+
+```python
+x, y = input("Enter two numbers: ").split()
+
+print(x)
+print(y)
+```
+
+If the user enters:
+
 ```text
 10 20
 ```
 
-Then:
+Then `x` is `"10"` and `y` is `"20"`.
+
+Convert them if needed:
+
 ```python
-x == "10"
-y == "20"
+x, y = input("Enter two numbers: ").split()
+x = int(x)
+y = int(y)
+
+print(x + y)
 ```
 
-Both values are still strings.
+## Handling Invalid Input
+Numeric conversion can fail.
 
-## Type conversion
-Convert input when numeric operations are needed.
-```python
-i = int(input("How old are you?"))
-f = float(input("Evaluate 7/2 :"))
-
-print("Age:", i)
-print(f)
-```
-
-Common conversions:
-| Function | Converts to |
-|----------|-------------|
-| `str(x)` | string |
-| `int(x)` | integer |
-| `float(x)` | floating-point number |
-
-## Handling invalid numeric input
-`int()` and `float()` raise `ValueError` if the text cannot be converted.
 ```python
 try:
     age = int(input("Age: "))
@@ -84,9 +124,17 @@ except ValueError:
     print("Please enter a valid number")
 ```
 
-## Gotchas
-- **`input()` returns `str`** - convert explicitly before math.
-- **`.split()` splits on whitespace by default**.
-- **Unpacking must match the number of inputs** - `x, y = input().split()` needs exactly two values.
-- **Use f-strings for readable output**.
-- **Numeric conversion can fail** - use `try` / `except` for real user input.
+Use `try` and `except` when user input may be invalid.
+
+## Common Mistakes
+- Forgetting that `input()` returns a string.
+- Trying to do math before converting input.
+- Forgetting spaces in prompts, such as `"Name:"` instead of `"Name: "`.
+- Using `.split()` and giving too many or too few values.
+- Forgetting that `print()` adds a newline by default.
+
+## Summary
+- Use `print()` to display output.
+- Use `input()` to read text from the user.
+- Convert input with `int()` or `float()` before numeric operations.
+- Use f-strings for readable output.

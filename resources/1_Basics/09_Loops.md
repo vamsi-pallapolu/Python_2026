@@ -3,111 +3,163 @@
 Source: `src/1_Basics/7_loops.py`
 
 ## Definition
-Loops repeat a block of code. Python has two main loop types:
+Loops repeat a block of code.
 
-- `for` loops for iterating over a sequence or iterable
-- `while` loops for repeating while a condition is true
+Python has two main loop types:
 
-## `for` loop with `range()`
+- `for` loops
+- `while` loops
+
+## `for` Loops
+Use a `for` loop to go through an iterable.
+
 ```python
-n = 4
+names = ["Asha", "Ben", "Carlos"]
 
-for i in range(0, n):
-    print(i)
+for name in names:
+    print(name)
 ```
 
 Output:
+
+```text
+Asha
+Ben
+Carlos
+```
+
+## `range()`
+Use `range()` when you need a sequence of numbers.
+
+```python
+for number in range(5):
+    print(number)
+```
+
+Output:
+
 ```text
 0
 1
 2
 3
+4
 ```
 
-`range(0, n)` starts at `0` and stops before `n`.
+`range(5)` starts at `0` and stops before `5`.
 
-## Finding the minimum with a loop
+Useful forms:
+
 ```python
-numbers = [10, 2, 3, 7]
-minimum = numbers[0]
-
-for value in numbers:
-    if value <= minimum:
-        minimum = value
-
-print(f"Minimum:{minimum}")
+range(5)        # 0, 1, 2, 3, 4
+range(2, 6)     # 2, 3, 4, 5
+range(0, 10, 2) # 0, 2, 4, 6, 8
 ```
 
-Start with the first value, then compare every value against the current minimum.
+## Looping by Index
+Use indexes only when you need them.
 
-Python also has a built-in:
 ```python
-min(numbers)
+names = ["Asha", "Ben", "Carlos"]
+
+for index in range(len(names)):
+    print(index, names[index])
 ```
 
-Manual loops are useful for learning how the logic works.
+If you need both index and value, `enumerate()` is usually better.
 
-## Iterating by index
 ```python
-numbers = [10, 2, 3, 7]
-
-for index in range(len(numbers)):
-    print(index, numbers[index])
+for index, name in enumerate(names):
+    print(index, name)
 ```
 
-Use this when the index is needed. If only values are needed, iterate directly.
+## `while` Loops
+Use a `while` loop when you want to repeat while a condition is true.
 
-## `while` loop
 ```python
 count = 0
 
 while count < 3:
-    count += 1
-    print("Hello World")
+    print("Hello")
+    count = count + 1
 ```
 
-A `while` loop needs:
-- an initial value
-- a condition
-- an update that eventually makes the condition false
+A `while` loop usually needs:
 
-## Infinite loop
+- a starting value
+- a condition
+- an update
+
+## Infinite Loops
+An infinite loop keeps running until something stops it.
+
 ```python
 while True:
-    print("hello world")
+    command = input("Command: ")
+
+    if command == "quit":
+        break
 ```
 
-This loop runs forever unless it reaches a `break`, raises an exception, or the program is stopped.
+Use `break` to exit the loop.
 
-## Nested loops
-Nested loops are loops inside loops.
-```python
-for i in range(1, 5):
-    for j in range(i):
-        print(i, end=" ")
-    print()
-```
-
-Output:
-```text
-1
-2 2
-3 3 3
-4 4 4 4
-```
-
-The outer loop controls the row. The inner loop controls how many values are printed in that row.
-
-## Loop control
-| Statement | Effect |
-|-----------|--------|
+## Loop Control Statements
+| Statement | Meaning |
+|-----------|---------|
 | `break` | exit the nearest loop |
 | `continue` | skip to the next iteration |
-| `pass` | do nothing placeholder |
+| `pass` | do nothing |
 
-## Gotchas
-- **`range(stop)` excludes `stop`**.
-- **Avoid naming variables `min`** because it shadows the built-in `min()`.
-- **A `while` loop must update its condition** or it may never stop.
-- **Nested loops multiply work** - two loops can easily become O(n^2).
-- **Use direct iteration when possible**: `for value in numbers`.
+Example with `continue`:
+
+```python
+for number in range(5):
+    if number == 2:
+        continue
+
+    print(number)
+```
+
+## Nested Loops
+A nested loop is a loop inside another loop.
+
+```python
+for row in range(3):
+    for column in range(3):
+        print(row, column)
+```
+
+Nested loops are useful for grids, tables, and combinations.
+
+They can also become slow for large data, so use them carefully.
+
+## Looping Through Dictionaries
+Loop through keys:
+
+```python
+person = {"name": "Vamsi", "age": 25}
+
+for key in person:
+    print(key)
+```
+
+Loop through keys and values:
+
+```python
+for key, value in person.items():
+    print(key, value)
+```
+
+## Common Mistakes
+- Forgetting that `range(stop)` excludes `stop`.
+- Creating an infinite `while` loop by forgetting to update the condition.
+- Using indexes when direct iteration is clearer.
+- Forgetting that `break` exits only the nearest loop.
+- Making nested loops over large data without thinking about performance.
+
+## Summary
+- Use `for` to loop over iterables.
+- Use `while` to loop while a condition is true.
+- Use `range()` for number sequences.
+- Use `break`, `continue`, and `pass` to control loops.
+- Prefer direct iteration when possible.

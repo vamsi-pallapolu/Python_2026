@@ -3,88 +3,138 @@
 Source: `src/1_Basics/6_Conditional.py`
 
 ## Definition
-Conditional statements choose which block of code runs based on a boolean condition.
+Conditional statements let a program choose which code to run.
 
-## `if`, `elif`, `else`
+They are based on conditions that evaluate to `True` or `False`.
+
+## The `if` Statement
+Use `if` to run code only when a condition is true.
+
+```python
+age = 20
+
+if age >= 18:
+    print("Adult")
+```
+
+The indented line runs only if `age >= 18` is true.
+
+## The `else` Statement
+Use `else` for the alternative case.
+
+```python
+age = 16
+
+if age >= 18:
+    print("Adult")
+else:
+    print("Minor")
+```
+
+Only one branch runs.
+
+## The `elif` Statement
+Use `elif` for more than two choices.
+
 ```python
 age = 25
 
 if age <= 12:
-    print("Kid")
+    print("Child")
 elif age <= 19:
-    print("teenager")
+    print("Teenager")
 elif age <= 35:
     print("Young adult")
 else:
     print("Adult")
 ```
 
-Python checks conditions from top to bottom. The first true branch runs, and the rest are skipped.
+Python checks the conditions from top to bottom.
 
-## Condition order matters
-For age ranges, start with the smallest upper bound when using `<=`.
+The first true branch runs, and the rest are skipped.
+
+## Condition Order
+Order matters when conditions overlap.
+
 ```python
-if age <= 12:
-    ...
-elif age <= 19:
-    ...
+score = 95
+
+if score >= 90:
+    print("A")
+elif score >= 80:
+    print("B")
+else:
+    print("C")
 ```
 
-If a broad condition appears first, it can block later conditions.
+Put the most specific or highest-priority condition first.
 
 ## Indentation
 Python uses indentation to define blocks.
+
 ```python
 if age >= 18:
     print("Adult")
     print("Can vote")
+
+print("Done")
 ```
 
-Both indented lines belong to the `if` block.
+The first two `print()` calls belong to the `if` block. The last one does not.
 
-## Ternary operator
-Use a conditional expression for simple value selection.
+## Conditional Expressions
+A conditional expression chooses one value from two options.
+
 ```python
-age = 19
-voter = "Adult" if age >= 18 else "Minor"
-print(voter)
+age = 20
+status = "Adult" if age >= 18 else "Minor"
 ```
 
 Format:
+
 ```python
 value_if_true if condition else value_if_false
 ```
 
-Use this only for short expressions. Use normal `if` / `else` blocks when logic becomes larger.
+Use it for short expressions only.
 
-## `match` / `case`
-Pattern matching is available in Python 3.10 and newer.
+## `match` and `case`
+Python 3.10 added pattern matching.
+
 ```python
-number = 1
+status_code = 404
 
-match number:
-    case 1:
-        print("one")
-    case 2 | 3:
-        print("Two or Three")
+match status_code:
+    case 200:
+        print("OK")
+    case 404:
+        print("Not found")
     case _:
-        print("Other number")
+        print("Other")
 ```
 
 `case _` is the default case.
 
-## Common comparison expressions
+## Common Conditions
 | Expression | Meaning |
 |------------|---------|
-| `age >= 18` | age is at least 18 |
-| `age <= 12` | age is at most 12 |
 | `x == y` | values are equal |
 | `x != y` | values are not equal |
-| `x in values` | value exists in a container |
+| `x > y` | x is greater than y |
+| `x >= y` | x is greater than or equal to y |
+| `x in items` | x exists in items |
+| `x is None` | x is exactly `None` |
 
-## Gotchas
-- **Use `==` for equality**, not `=`.
-- **Indentation is syntax** in Python.
-- **Branch order matters** when conditions overlap.
-- **The ternary operator is for expressions**, not multi-line logic.
-- **`match` / `case` requires Python 3.10+**.
+## Common Mistakes
+- Using `=` instead of `==`.
+- Forgetting the colon after `if`, `elif`, or `else`.
+- Using wrong indentation.
+- Putting a broad condition before a specific one.
+- Using a conditional expression for complicated logic.
+
+## Summary
+- Use `if` to run code when a condition is true.
+- Use `else` for the alternative.
+- Use `elif` for extra branches.
+- Indentation controls the block.
+- Use `match` and `case` for pattern-style branching in Python 3.10+.

@@ -1,124 +1,230 @@
-# Scope & Namespaces
+# Scope and Namespaces
 
 ## Definition
-A **namespace** is a mapping from names to objects. A **scope** is a textual region of code where a given namespace is directly accessible. Every module, function call, and class body has its own namespace; scope determines which namespaces Python searches when a bare name is used.
+A **name** is an identifier that refers to an object.
 
-## LEGB lookup order
-When a bare name is referenced, Python searches:
+Variables are the most common kind of name, but function names, class names,
+module names, and built-in names are names too.
 
-1. **L**ocal — the current function's local namespace.
-2. **E**nclosing — the local namespace of each enclosing function, innermost first.
-3. **G**lobal — the current module's top-level namespace.
-4. **B**uilt-in — the `builtins` module (`len`, `range`, `print`, `Exception`, ...).
+```python
+age = 25
+
+def greet():
+    print("Hello")
+
+class Person:
+    pass
+```
+
+In this example, `age`, `greet`, and `Person` are all names.
+
+A **namespace** is a place where Python stores names and the objects they refer to.
+
+A **scope** is the part of your program where a variable or other name can be used directly.
+
+```python
+username = "Vamsi"
+print(username)
+```
+
+Here, `username` is a variable in the current namespace. Because `print(username)` is in the same scope, Python can find it.
+
+## Name Lookup Order (LEGB)
+When Python sees a name such as `x`, `print`, or `greet`, it searches in this order:
+
+1. Local
+2. Enclosing
+3. Global
+4. Built-in
+
+This is called **LEGB**.
 
 ```python
 x = "global"
 
 def outer():
     x = "enclosing"
+
     def inner():
         x = "local"
-        print(x)          # 'local'
+        print(x)
+
     inner()
-    print(x)              # 'enclosing'
 
 outer()
-print(x)                  # 'global'
 ```
 
-Lookup stops at the first match. If no scope defines the name, `NameError`.
+Output:
 
-## Reading vs assigning
-The rules are asymmetric:
+```text
+local
+```
 
-- **Reading** a name walks LEGB at runtime.
-- **Assigning** a name creates a binding in the **current scope** (local, for a function body) — unless declared `global` or `nonlocal`.
+Python found the closest `x`, so it used `"local"`.
 
-The classification is done at compile time by scanning the function body for assignments. Any assignment anywhere in the function marks the name local for the **entire** function, including reads that lexically precede it.
+## Local Scope
+Variables created inside a function usually belong only to that function.
 
 ```python
-x = 10
-def g():
-    print(x)              # UnboundLocalError
-    x = 20                # this line makes x local everywhere in g
+def greet():
+    message = "Hello"
+    print(message)
+
+greet()
+print(message)  # NameError
 ```
 
-`del x` counts as an assignment for scope purposes — it produces the same classification.
+`message` exists only inside `greet`.
 
-## `global`
-Declares that assignments to a name inside the function target the **module namespace**, not local.
+## Global Scope
+A variable created outside any function is global to that file.
+
+```python
+count = 0
+
+def show_count():
+    print(count)
+
+show_count()
+```
+
+Reading a global variable from inside a function is allowed.
+
+## Assignment and Local Variables
+If you assign to a variable inside a function, Python treats that variable as local.
+
+```python
+count = 0
+
+def broken():
+    count = count + 1
+    print(count)
+
+broken()
+```
+
+This raises `UnboundLocalError`.
+
+Python thinks `count` is local because of `count = count + 1`, but the local `count` does not have a value yet.
+
+## The `global` Keyword
+Use `global` when a function needs to change a global variable.
 
 ```python
 count = 0
 
 def bump():
     global count
-    count += 1            # without `global`, this raises UnboundLocalError
+    count = count + 1
+
+bump()
+print(count)
 ```
 
-`global x` only affects the function it appears in; it does not create a global by itself.
+Output:
 
-## `nonlocal`
-Declares that assignments target the **nearest enclosing function scope** (not module scope). The enclosing binding must already exist — the compiler rejects `nonlocal x` if no enclosing function defines `x`.
+```text
+1
+```
+
+Use `global` carefully. In many programs, it is cleaner to return a new value instead.
+
+```python
+def bump(count):
+    return count + 1
+
+count = 0
+count = bump(count)
+```
+
+## The `nonlocal` Keyword
+Use `nonlocal` when an inner function needs to change a variable from an outer function.
 
 ```python
 def make_counter():
-    n = 0
+    count = 0
+
     def bump():
-        nonlocal n
-        n += 1
-        return n
+        nonlocal count
+        count = count + 1
+        return count
+
     return bump
+
+counter = make_counter()
+print(counter())
+print(counter())
 ```
 
-Reading a captured name works without `nonlocal`; only rebinding requires it.
+Output:
 
-## `locals()` / `globals()` / `builtins`
-- `locals()` — dict snapshot of the current local namespace. Writing to the returned dict does **not** update local variables in a function.
-- `globals()` — the actual module namespace dict; mutating it does change module globals.
-- `import builtins` — the built-in namespace, exposed as a module.
+```text
+1
+2
+```
 
-## `UnboundLocalError` vs `NameError`
-- `NameError` — no scope in LEGB defines the name.
-- `UnboundLocalError` — the name is classified local (some assignment in the function) but is read before that assignment executes.
+Without `nonlocal`, Python would create a new local `count` inside `bump`.
 
-## Class body scope
-A class body is its own scope, but methods defined inside it do **not** see class-body names via enclosing lookup. Access class attributes through `cls.` (classmethod) or `self.` (instance method):
+## Blocks and Scope
+`if`, `for`, `while`, `try`, and `with` do not create a new scope.
 
 ```python
-class C:
-    value = 1
-    def get(self):
-        return self.value          # not just `value`
+if True:
+    result = "done"
+
+print(result)
 ```
 
-Class-body names are visible during the body's execution (e.g. for decorators applied to methods) but are not part of the LEGB chain seen by nested functions.
+Output:
 
-## Comprehensions have their own scope
-The loop variable and any names bound inside a comprehension live in an implicit function scope. They do not leak:
+```text
+done
+```
+
+The variable still exists after the `if` block.
+
+## Function Scope
+Functions create their own scope.
 
 ```python
-[i for i in range(3)]
-print(i)                  # NameError (in a fresh scope)
+def example():
+    value = 10
+
+example()
+print(value)  # NameError
 ```
 
-This also applies to generator, set, and dict comprehensions.
-
-## Blocks that do **not** create a scope
-`if`, `for`, `while`, `try`, and `with` do not introduce new scopes. Names bound inside them live in the enclosing function/module scope.
+## Comprehension Scope
+The loop variable inside a comprehension does not leak out.
 
 ```python
-for i in range(3):
-    x = i
-print(i, x)               # 2 2  — both survive
+numbers = [1, 2, 3]
+squares = [n * n for n in numbers]
+
+print(squares)
+print(n)  # NameError
 ```
 
-Scope-creating constructs: **modules, functions, class bodies, and comprehensions**.
+## Common Mistakes
+- Reading a variable before assigning it inside the same function.
+- Using `global` when returning a value would be simpler.
+- Expecting `if`, `for`, or `with` to hide variables. They do not.
+- Expecting a method to access class variables by bare name.
 
-## Gotchas
-- **Any assignment makes a name local for the entire function.** Reads before the assignment raise `UnboundLocalError`.
-- **`del x` counts as assignment** for scope classification. Deleting a name that would otherwise resolve globally makes it local instead.
-- **`global` does not create a global** — it redirects assignments within one function to the module namespace. The name still needs to exist (or be assigned) at module level.
-- **`nonlocal` requires an existing enclosing binding.** Fails at compile time otherwise.
-- **Loop variables leak** — after `for i in range(3):`, `i == 2` in the enclosing scope. Comprehensions do not leak.
-- **Writing to `locals()` in a function is not persistent** — it returns a snapshot dict; local variables live in a fixed-size frame array, not that dict.
+```python
+class Person:
+    species = "human"
+
+    def show_species(self):
+        print(self.species)
+```
+
+Inside a method, use `self.species`, not just `species`.
+
+## Summary
+- A name is an identifier that refers to an object, such as a variable, function, class, module, or built-in.
+- A namespace stores names and the objects they refer to.
+- A scope decides where variables and other names can be used.
+- Python searches names using LEGB: local, enclosing, global, built-in.
+- Assigning to a variable inside a function makes it local unless you use `global` or `nonlocal`.
+- Functions create scope; normal blocks like `if` and `for` do not.

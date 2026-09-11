@@ -3,89 +3,177 @@
 Source: `src/1_Basics/2_variables.py`
 
 ## Definition
-A variable is a name that refers to an object. Python variables store references to objects, not the actual object data directly.
+A variable is a name that refers to a value.
 
 ```python
-x = 1
-y = x
+name = "Vamsi"
+age = 25
 ```
 
-Both names can refer to the same object until one name is rebound.
+In Python, variables do not store the object directly. They refer to objects.
 
-## Assigning the same value to multiple variables
+## Creating Variables
+Use `=` to assign a value to a name.
+
+```python
+x = 10
+message = "Hello"
+is_active = True
+```
+
+Python decides the type from the value.
+
+```python
+print(type(x))
+print(type(message))
+```
+
+## Naming Rules
+Variable names:
+
+- can contain letters, numbers, and underscores
+- cannot start with a number
+- cannot be Python keywords
+- are case-sensitive
+
+Valid names:
+
+```python
+age = 25
+first_name = "Vamsi"
+total_count = 10
+```
+
+Invalid names:
+
+```python
+2name = "bad"      # SyntaxError
+class = "bad"      # SyntaxError
+```
+
+## Naming Style
+Use `snake_case` for normal Python variables.
+
+```python
+first_name = "Vamsi"
+total_price = 99.99
+```
+
+Avoid unclear names:
+
+```python
+x = 99.99
+```
+
+Use meaningful names:
+
+```python
+total_price = 99.99
+```
+
+## Assigning Multiple Variables
+Assign the same value to several names:
+
 ```python
 a = b = c = 20
-print(a, b, c)
 ```
 
-All three names refer to the same integer object `20`.
+Assign different values in one line:
 
-## Assigning different values in one line
 ```python
-x, y, z = "vamsi", 29, "mathworks"
-print(x, y, z)
+name, age, city = "Vamsi", 25, "New York"
 ```
 
-This is called unpacking assignment. The number of names must match the number of values.
+The number of names must match the number of values.
 
-## Rebinding a variable
+## Rebinding Variables
+You can point a variable name to a new value.
+
 ```python
-x = 1
-y = x
-y = y + 1
+x = 10
+x = 20
 
-print(x)     # 1
-print(y)     # 2
+print(x)
 ```
 
-`y = y + 1` does not change `x`. It creates or finds a new value and rebinds `y`.
+Output:
 
-## Deleting a variable
-```python
-z = 30
-del z
+```text
+20
 ```
 
-After `del z`, the name `z` is removed. Using it again raises `NameError`.
+This is called rebinding.
 
-## Object identity
-`id()` returns an object's identity during its lifetime.
+## Equality and Identity
+Use `==` to compare values.
+
+Use `is` to check whether two names refer to the exact same object.
+
 ```python
-v1 = [1, 2, 3]
-v2 = [1, 2, 3]
+a = [1, 2, 3]
+b = [1, 2, 3]
+c = a
 
-print(id(v1))
-print(id(v2))
+print(a == b)
+print(a is b)
+print(a is c)
 ```
 
-Even though the lists have equal values, they are two different objects.
+Output:
 
-```python
-v1 == v2      # True: same contents
-v1 is v2      # False: different objects
+```text
+True
+False
+True
 ```
 
-## Swapping variables
-Python supports clean variable swapping.
+Use `is` mainly for checks like:
+
 ```python
-a, b = 10, 20
+if value is None:
+    print("missing")
+```
+
+## Deleting a Name
+Use `del` to remove a name.
+
+```python
+x = 10
+del x
+
+print(x)  # NameError
+```
+
+`del` removes the name. It does not always destroy the object immediately.
+
+## Swapping Values
+Python can swap values directly.
+
+```python
+a = 10
+b = 20
+
 a, b = b, a
+
+print(a, b)
 ```
 
-No temporary variable is needed.
+Output:
 
-## Practical example: string length
-```python
-word = "Python"
-length = len(word)
-print("Length of word", length)
+```text
+20 10
 ```
 
-`len()` returns the number of characters in the string.
+## Common Mistakes
+- Using a Python keyword as a variable name.
+- Using unclear names like `x` when a meaningful name would help.
+- Confusing `=` with `==`.
+- Using `is` when you mean value equality.
+- Forgetting that assignment does not copy mutable objects.
 
-## Gotchas
-- **Assignment binds names to objects** - it does not copy objects by default.
-- **`==` checks value equality**; **`is` checks identity**.
-- **`del` removes a name**, not necessarily the object immediately.
-- **Unpacking counts must match** - `x, y = 1, 2, 3` raises `ValueError`.
-- **Avoid shadowing built-ins** like `list`, `min`, `max`, and `str`.
+## Summary
+- A variable is a name that refers to a value.
+- Use `=` for assignment.
+- Use clear `snake_case` names.
+- Use `==` for value comparison.
+- Use `is None` for checking `None`.

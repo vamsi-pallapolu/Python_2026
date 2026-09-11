@@ -3,106 +3,133 @@
 Source: `src/1_Basics/9_0_eh.py`
 
 ## Definition
-An exception is a runtime error condition. Python raises an exception when it cannot continue normal execution.
+An exception is an error that happens while a program is running.
 
-Exception handling lets the program respond to errors instead of crashing immediately.
+Exception handling lets a program respond to errors instead of stopping immediately.
 
-## `try`, `except`, `else`, `finally`
+## Basic `try` and `except`
+Put code that might fail inside `try`.
+
+Handle the error with `except`.
+
 ```python
 try:
-    n = 0
-    res = 10 / 3
-except ZeroDivisionError:
-    print("Division by zero is not allowed")
-else:
-    print("The result is:", res)
-finally:
-    print("Execution completed")
-```
-
-| Block | When it runs |
-|-------|--------------|
-| `try` | code that might raise an exception |
-| `except` | when a matching exception happens |
-| `else` | when no exception happens |
-| `finally` | always runs |
-
-## Specific exception handling
-Catch the exact error types you expect.
-```python
-try:
-    x = int("str")
-    res = n / x
+    number = int("hello")
 except ValueError:
-    print("Invalid value provided")
+    print("That is not a valid number")
+```
+
+`int("hello")` raises `ValueError`, so the `except` block runs.
+
+## Handling Specific Exceptions
+Catch the exception types you expect.
+
+```python
+try:
+    result = 10 / 0
 except ZeroDivisionError:
-    print("Division by zero is not allowed")
-else:
-    print("The result is:", res)
-finally:
-    print("Execution completed")
+    print("Cannot divide by zero")
 ```
 
-`int("str")` raises `ValueError`, so the `ValueError` block runs.
+Specific exceptions make code easier to understand and safer to debug.
 
-## Handling multiple exceptions together
-Use a tuple of exception classes when the handling is the same.
-```python
-a = ["10", "twenty", 30]
+## Handling Multiple Exceptions
+Use multiple `except` blocks when errors need different handling.
 
-try:
-    res = int(a[0]) + int(a[1])
-except (ValueError, TypeError) as e:
-    print("Error occurred:", e)
-else:
-    print("The result is:", res)
-finally:
-    print("Execution completed")
-```
-
-`as e` stores the exception object so its message can be printed.
-
-## Catching general exceptions
 ```python
 try:
-    res = 10 / 0
-except Exception as e:
-    print("An error occurred:", e)
+    value = int(input("Number: "))
+    result = 10 / value
+except ValueError:
+    print("Please enter a number")
+except ZeroDivisionError:
+    print("Cannot divide by zero")
 ```
 
-This catches most normal application errors. Prefer specific exceptions when possible.
+Use a tuple when the handling is the same.
 
-## Raising an exception
-Use `raise` to signal an error yourself.
 ```python
-def age(age):
+try:
+    value = int("hello")
+except (ValueError, TypeError):
+    print("Invalid value")
+```
+
+## The `else` Block
+The `else` block runs only if no exception occurs.
+
+```python
+try:
+    value = int("10")
+except ValueError:
+    print("Invalid number")
+else:
+    print("Converted:", value)
+```
+
+Use `else` for code that should run only after the `try` block succeeds.
+
+## The `finally` Block
+The `finally` block always runs.
+
+```python
+try:
+    file = open("data.txt")
+except FileNotFoundError:
+    print("File missing")
+finally:
+    print("Finished")
+```
+
+`finally` is often used for cleanup.
+
+For files, a `with` statement is usually better.
+
+## Raising Exceptions
+Use `raise` to create an exception yourself.
+
+```python
+def set_age(age):
     if age < 0:
         raise ValueError("Age cannot be negative")
-    print(age)
 
-
-try:
-    age(-5)
-except ValueError as e:
-    print("Error occurred:", e)
+    return age
 ```
 
-Raising an exception is better than returning an invalid result.
+Raise an exception when the function cannot safely continue.
 
-## Common built-in exceptions
-| Exception | Common cause |
+## Getting the Error Message
+Use `as` to store the exception object.
+
+```python
+try:
+    value = int("hello")
+except ValueError as error:
+    print(error)
+```
+
+## Common Built-in Exceptions
+| Exception | Common Cause |
 |-----------|--------------|
-| `ValueError` | valid type, invalid value |
-| `TypeError` | operation used with wrong type |
+| `ValueError` | right type, invalid value |
+| `TypeError` | wrong type for an operation |
 | `ZeroDivisionError` | division by zero |
-| `FileNotFoundError` | missing file |
-| `KeyError` | missing dictionary key |
-| `IndexError` | invalid sequence index |
+| `FileNotFoundError` | file does not exist |
+| `KeyError` | dictionary key does not exist |
+| `IndexError` | list or tuple index does not exist |
+| `ImportError` | import failed |
 
-## Gotchas
-- **Catch specific exceptions first**.
-- **`else` runs only if `try` succeeds**.
-- **`finally` runs even if an exception was raised**.
-- **Do not hide errors with empty `except` blocks**.
-- **Use `raise ValueError(...)` for invalid values**.
-- **Avoid bare `except:`** because it catches too much.
+## Common Mistakes
+- Catching every error with a bare `except:`.
+- Catching `Exception` when a specific exception would be better.
+- Hiding errors without logging or explaining them.
+- Putting too much code inside one `try` block.
+- Forgetting that `finally` runs even when an error happens.
+
+## Summary
+- Exceptions are runtime errors.
+- Use `try` and `except` to handle expected errors.
+- Catch specific exception types.
+- Use `else` for success-only code.
+- Use `finally` for cleanup.
+- Use `raise` when your code needs to signal an error.

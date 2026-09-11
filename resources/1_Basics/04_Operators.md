@@ -5,155 +5,174 @@ Source: `src/1_Basics/3_operators.py`
 ## Definition
 Operators are symbols or keywords that perform operations on values.
 
-## Arithmetic operators
+```python
+print(2 + 3)
+print(10 > 5)
+```
+
+## Arithmetic Operators
+Arithmetic operators work with numbers.
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `+` | addition | `2 + 3` |
+| `-` | subtraction | `5 - 2` |
+| `*` | multiplication | `4 * 3` |
+| `/` | division | `10 / 4` |
+| `//` | floor division | `10 // 4` |
+| `%` | remainder | `10 % 4` |
+| `**` | power | `2 ** 3` |
+
 ```python
 a = 15
 b = 4
 
-print(a / b)      # division: 3.75
-print(a // b)     # floor division: 3
-print(a % b)      # modulus: 3
-print(3 ** 3)     # exponentiation: 27
+print(a / b)
+print(a // b)
+print(a % b)
+print(2 ** 3)
 ```
+
+Output:
+
+```text
+3.75
+3
+3
+8
+```
+
+## Comparison Operators
+Comparison operators return `True` or `False`.
 
 | Operator | Meaning |
 |----------|---------|
-| `+` | addition |
-| `-` | subtraction |
-| `*` | multiplication |
-| `/` | division |
-| `//` | floor division |
-| `%` | remainder |
-| `**` | exponentiation |
-
-## Comparison operators
-Comparison operators return booleans.
-```python
-a = 13
-b = 12
-
-print(a < b)      # False
-print(a == b)     # False
-print(a >= b)     # True
-```
-
-| Operator | Meaning |
-|----------|---------|
+| `==` | equal |
+| `!=` | not equal |
 | `<` | less than |
 | `<=` | less than or equal |
 | `>` | greater than |
 | `>=` | greater than or equal |
-| `==` | equal value |
-| `!=` | not equal value |
 
-## Logical operators
 ```python
-a = True
-b = False
+age = 20
 
-print(a and b)    # False
-print(a or b)     # True
-print(not b)      # True
+print(age >= 18)
+print(age == 21)
 ```
+
+## Logical Operators
+Logical operators combine conditions.
 
 | Operator | Meaning |
 |----------|---------|
 | `and` | true when both sides are true |
 | `or` | true when at least one side is true |
-| `not` | reverses truth value |
+| `not` | reverses a condition |
 
-## Bitwise operators
-Bitwise operators work on integer bits.
 ```python
-5 & 3     # 1
-5 | 3     # 7
-5 ^ 3     # 6
-~5        # -6
-5 << 1    # 10
-5 >> 1    # 2
+age = 20
+has_id = True
+
+if age >= 18 and has_id:
+    print("Allowed")
 ```
 
-| Operator | Meaning |
-|----------|---------|
-| `&` | bitwise AND |
-| `|` | bitwise OR |
-| `^` | bitwise XOR |
-| `~` | bitwise NOT |
-| `<<` | left shift |
-| `>>` | right shift |
+## Assignment Operators
+Assignment operators update a variable.
 
-## Assignment operators
 ```python
 x = 10
-x += 5      # same as x = x + 5
+x += 5
 x -= 2
 x *= 3
-x /= 2
-x <<= 1
 ```
 
-Assignment operators update the variable binding or mutate the target depending on the object and operation.
+`x += 5` means:
 
-## Identity operators
-Identity checks whether two names refer to the same object.
 ```python
-a = 10
-b = 20
-c = a
-
-print(a is not b)      # True
-print(a is c)          # True
+x = x + 5
 ```
 
-Use `==` for value comparison. Use `is` mainly for identity checks such as `x is None`.
+## Identity Operators
+Identity operators check whether two names refer to the same object.
 
-## Membership operators
-Membership checks whether a value exists inside a container.
-```python
-x = 24
-my_list = [10, 20, 30, 40]
-
-if x in my_list:
-    print("found")
-else:
-    print("not found")
-```
-
-Operators:
 | Operator | Meaning |
 |----------|---------|
-| `in` | value exists in container |
-| `not in` | value does not exist in container |
+| `is` | same object |
+| `is not` | not the same object |
 
-## Ternary operator
-Python's conditional expression selects one of two values.
 ```python
-a, b = 10, 20
-minimum = a if a < b else b
-print(minimum)         # 10
+value = None
+
+if value is None:
+    print("missing")
+```
+
+Use `==` for normal value comparison.
+
+## Membership Operators
+Membership operators check whether a value exists in a container.
+
+| Operator | Meaning |
+|----------|---------|
+| `in` | exists inside |
+| `not in` | does not exist inside |
+
+```python
+names = ["Asha", "Ben"]
+
+if "Asha" in names:
+    print("found")
+```
+
+## Conditional Expression
+A conditional expression chooses one of two values.
+
+```python
+age = 20
+status = "adult" if age >= 18 else "minor"
 ```
 
 Format:
+
 ```python
 value_if_true if condition else value_if_false
 ```
 
-## Precedence and associativity
-Operator precedence decides which operation runs first.
+Use it for short, simple choices.
+
+## Operator Precedence
+Precedence decides which operation happens first.
+
 ```python
-2 ** 3 ** 2      # 512
+print(2 + 3 * 4)
 ```
 
-Exponentiation is right-associative:
-```python
-2 ** (3 ** 2)
+Output:
+
+```text
+14
 ```
 
-Use parentheses when readability matters.
+Multiplication happens before addition.
 
-## Gotchas
-- **`/` always returns a float**.
-- **`//` floors the result**, which matters for negative numbers.
-- **`==` compares values; `is` compares identity**.
-- **Do not name variables `min` or `list`** because that shadows built-ins.
-- **Use parentheses** when an expression mixes several operator groups.
+Use parentheses when it helps readability.
+
+```python
+print((2 + 3) * 4)
+```
+
+## Common Mistakes
+- Using `=` when you mean `==`.
+- Using `is` for normal value comparison.
+- Forgetting that `/` returns a float.
+- Forgetting that `//` means floor division.
+- Writing long expressions without parentheses.
+
+## Summary
+- Operators perform operations on values.
+- Arithmetic operators do math.
+- Comparison operators return booleans.
+- Logical operators combine conditions.
+- Use `==` for equality and `is` mostly for `None`.

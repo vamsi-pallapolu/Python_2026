@@ -1,185 +1,175 @@
 # Type Hints
 
 ## Definition
-Type hints are **annotations** on variables, parameters, and return values. They are not enforced at runtime — the interpreter stores them but does not check them. Their consumers are static type checkers (`mypy`, `pyright`), IDEs, and libraries that introspect annotations at runtime.
+Type hints tell readers and tools what kind of value you expect.
+
+They do **not** force Python to check types while the program runs.
 
 ```python
 def add(a: int, b: int) -> int:
     return a + b
 ```
 
-Passing `add("1", "2")` runs without error at runtime; only a checker will flag it.
+This says:
 
-## Variable annotations
+- `a` should be an `int`
+- `b` should be an `int`
+- the function should return an `int`
+
+Python will still run this:
+
+```python
+add("1", "2")
+```
+
+A type checker can warn you, but Python itself will not stop it.
+
+## Variable Annotations
 ```python
 name: str = "Vamsi"
 age: int = 25
-scores: list[int] = [90, 85, 78]
-
-count: int                  # annotation only, no binding
+price: float = 19.99
+is_active: bool = True
 ```
 
-An annotation-only statement records the type in `__annotations__` without creating a variable.
+You can also hint containers.
 
-## Function annotations
-Parameters use `: type`; the return uses `-> type`. `None` means the function returns nothing meaningful.
+```python
+scores: list[int] = [90, 85, 78]
+user: dict[str, str] = {"name": "Vamsi", "city": "New York"}
+```
+
+`list[int]` means a list of integers.
+
+`dict[str, str]` means a dictionary with string keys and string values.
+
+## Function Annotations
+Use `: type` for parameters.
+
+Use `-> type` for the return value.
 
 ```python
 def greet(name: str) -> str:
     return f"Hello, {name}"
 
-def log(msg: str) -> None:
-    print(msg)
+def print_total(total: int) -> None:
+    print(total)
 ```
 
-## Built-in generics (3.9+)
+Use `None` when the function does not return a useful value.
+
+## Built-in Collection Types
 ```python
-list[int]
-dict[str, int]
-tuple[int, str]             # exactly (int, str)
-tuple[int, ...]              # any-length tuple of ints
-set[str]
+names: list[str] = ["Asha", "Ben"]
+person: dict[str, int] = {"age": 30}
+point: tuple[int, int] = (10, 20)
+tags: set[str] = {"python", "basics"}
 ```
 
-On 3.8 and earlier, import from `typing` (`List`, `Dict`, `Tuple`, `Set`) instead.
-
-## Unions and Optional
-`X | Y` requires 3.10+; older code uses `typing.Union`.
+For a tuple with many values of the same type:
 
 ```python
-def parse(x: int | str) -> int:
-    return int(x)
-
-# Optional[X] is exactly X | None
-def find(uid: int) -> str | None:
-    ...
+numbers: tuple[int, ...] = (1, 2, 3, 4)
 ```
 
-`Optional[X]` means "value or None". It does **not** mean "the parameter is optional" — that's controlled by giving the parameter a default value.
-
-## typing helpers
-| Helper | Meaning |
-|--------|---------|
-| `Any` | disables checking for this slot |
-| `Callable[[Arg1, Arg2], Ret]` | callable with a given signature |
-| `Iterable[X]` / `Iterator[X]` | supports `iter()` / `next()` |
-| `Sequence[X]` | indexable, has `len` (list, tuple, str) |
-| `Mapping[K, V]` | read-only dict-like |
+## Union Types
+Use `|` when a value can have more than one type.
 
 ```python
-from typing import Callable, Iterable
-
-def apply(fn: Callable[[int], int], xs: Iterable[int]) -> list[int]:
-    return [fn(x) for x in xs]
+def parse_id(value: int | str) -> int:
+    return int(value)
 ```
 
-## Protocols — structural typing
-`Protocol` defines an interface by the presence of methods/attributes; anything with a matching shape satisfies it, no inheritance required.
+This means `value` can be an `int` or a `str`.
+
+## Optional Values
+Use `None` in the type when a value may be missing.
 
 ```python
-from typing import Protocol
-
-class SupportsClose(Protocol):
-    def close(self) -> None: ...
-
-def shut(x: SupportsClose) -> None:
-    x.close()
+def find_user(user_id: int) -> str | None:
+    if user_id == 1:
+        return "Vamsi"
+    return None
 ```
 
-## Generics with `TypeVar`
-```python
-from typing import TypeVar
-T = TypeVar("T")
+Important: `str | None` means the value can be a string or `None`.
 
-def first(xs: list[T]) -> T:
-    return xs[0]
+It does not mean the argument is optional.
+
+This parameter is optional because it has a default value:
+
+```python
+def greet(name: str = "friend") -> str:
+    return f"Hello, {name}"
 ```
 
-3.12+ has clean parameterized syntax without importing `TypeVar`:
-```python
-def first[T](xs: list[T]) -> T:
-    return xs[0]
-```
-
-## Literal, Final, ClassVar
-```python
-from typing import Literal, Final, ClassVar
-
-Mode = Literal["r", "w", "a"]
-def open_file(path: str, mode: Mode) -> None: ...
-
-PI: Final = 3.14159         # not to be reassigned (checker-enforced)
-
-class C:
-    total: ClassVar[int] = 0    # class attribute, not per-instance
-```
-
-## TypedDict
-Dicts with a fixed key schema, checked structurally.
+## Type Aliases
+A type alias gives a type a clearer name.
 
 ```python
-from typing import TypedDict
-
-class User(TypedDict):
-    name: str
-    age: int
-
-u: User = {"name": "v", "age": 25}
-```
-
-## Type aliases
-```python
-# 3.12+ — real alias syntax
-type UserId = int
-type UserMap = dict[UserId, str]
-
-# Any version — plain assignment
 UserId = int
-UserMap = dict[UserId, str]
+
+def get_user_name(user_id: UserId) -> str:
+    return "Vamsi"
 ```
 
-## Forward references and `__future__`
-Referencing a name before it's defined requires quoting or deferring evaluation.
+This can make code easier to read.
+
+## The `Any` Type
+`Any` means "allow anything".
 
 ```python
-def f(node: "TreeNode") -> None: ...        # string forward ref
+from typing import Any
 
-# Or defer all annotations to strings:
-from __future__ import annotations
-def f(node: TreeNode) -> None: ...
+def show(value: Any) -> None:
+    print(value)
 ```
 
-With `from __future__ import annotations`, every annotation is stored as a string; runtime consumers must call `typing.get_type_hints(obj)` to resolve them.
+Use `Any` only when you really do not know the type. It disables many useful type checker warnings.
 
-## Runtime access
-- `obj.__annotations__` — raw annotation mapping.
-- `typing.get_type_hints(obj)` — resolves strings and forward refs.
-- `typing.cast(T, value)` — checker-only assertion; no runtime effect.
-- `@overload` — declare multiple typed signatures for one implementation.
+## Callable Types
+Use `Callable` for a function that gets passed into another function.
 
 ```python
-from typing import overload
+from collections.abc import Callable
 
-@overload
-def f(x: int) -> int: ...
-@overload
-def f(x: str) -> str: ...
-def f(x):
-    return x
+def apply_twice(func: Callable[[int], int], value: int) -> int:
+    return func(func(value))
+
+def double(x: int) -> int:
+    return x * 2
+
+print(apply_twice(double, 3))
 ```
 
-## Static checking
+Output:
+
+```text
+12
+```
+
+`Callable[[int], int]` means a function that takes one `int` and returns one `int`.
+
+## Static Type Checking
+Python does not check type hints by default. Use a tool such as `mypy` or `pyright`.
+
 ```bash
 pip install mypy
 mypy your_file.py
 ```
 
-`pyright` (used by Pylance in VS Code) is a faster alternative with slightly different defaults.
+Editors like VS Code can also show type hint warnings while you code.
 
-## Gotchas
-- **Not runtime-enforced.** Passing the wrong type does not raise; only a checker flags it.
-- **`list[int]` needs 3.9+; `X | Y` needs 3.10+.** On older versions use `typing.List` / `typing.Union`.
-- **`Optional[X]` ≠ "optional parameter".** It means "X or None". A parameter is optional when it has a default value.
-- **Forward references need quoting or `__future__`.** Otherwise Python evaluates the annotation at `def` time and raises `NameError`.
-- **`from __future__ import annotations` breaks runtime introspection.** Libraries reading `__annotations__` directly will see strings; use `typing.get_type_hints`.
-- **`Any` silently disables checking.** Prefer `object` when you truly mean "any object" and want the checker to still restrict operations.
+## Common Mistakes
+- Thinking type hints change runtime behavior.
+- Using `Any` everywhere.
+- Forgetting `None` when a function can return nothing.
+- Confusing `str | None` with an optional parameter.
+- Writing very complex types before the simple types are clear.
+
+## Summary
+- Type hints explain expected types.
+- They help people, editors, and type checkers.
+- They do not make Python enforce types at runtime.
+- Use `list[int]`, `dict[str, int]`, and `str | None` for common cases.
+- Start simple. Add more detailed hints only when they make the code clearer.

@@ -1,254 +1,177 @@
 # About Python
 
-## What is Python?
-Python is a popular programming language known for **easy-to-read syntax**. You write code in `.py` files and run them without a separate compile step. It's used everywhere — web apps, data science, machine learning, automation, scripting.
+## Definition
+Python is a general-purpose programming language with clear syntax and a large standard library.
 
-Key traits (interview one-liners):
-- **Interpreted** — no separate compile step for the developer; source is executed by the Python interpreter (usually CPython).
-- **Dynamically typed** — variable types are checked at runtime, not declared up front.
-- **Strongly typed** — implicit unsafe conversions are rejected (`"1" + 2` → `TypeError`).
-- **Garbage collected** — memory managed via reference counting + a cyclic garbage collector.
-- **Multi-paradigm** — OOP, functional, procedural.
-- **Cross-platform** — same code runs on Linux, macOS, Windows.
-- **Open source** — governed by the Python Software Foundation (PSF).
+It is used for:
 
----
+- automation scripts
+- web applications
+- data science
+- machine learning
+- testing
+- command-line tools
 
-## History
+Python files usually end with `.py`.
 
-| Year | Event |
-|------|-------|
-| Late 1980s | **Guido van Rossum** starts Python at CWI (Netherlands) as a successor to the ABC language. |
-| **1991**   | **Python 0.9.0** released — first public release. |
-| 1994       | Python 1.0 — first major version; functional tools (`lambda`, `map`, `filter`, `reduce`) already present. |
-| 2000       | Python 2.0 — list comprehensions, garbage collection for cycles, Unicode support. |
-| 2008       | Python 3.0 — intentionally backward-incompatible cleanup (print is a function, `str` is Unicode by default, integer division changed). |
-| 2020       | **Python 2.7 end-of-life** (Jan 1, 2020). Python 3 is the only actively supported line. |
-| 2021       | Python 3.10 — structural pattern matching (`match / case`), better error messages. |
-| 2023       | Python 3.12 — per-interpreter GIL (PEP 684, C-API), formalized f-string grammar (PEP 701), improved error messages. |
-| 2024       | Python 3.13 — experimental **free-threaded (no-GIL) build**, experimental JIT. |
-
-- The name **"Python"** was inspired by the British comedy group *Monty Python's Flying Circus*, not the snake.
-- Van Rossum was known as the **"Benevolent Dictator For Life" (BDFL)**; he stepped down as BDFL in July 2018. Since 2019, Python has been governed by an elected **Steering Council** (PEP 8016).
-- Language changes are proposed through **PEPs** (Python Enhancement Proposals). The style guide is **PEP 8**; the design philosophy is **PEP 20** ("The Zen of Python" — `import this`).
-
----
-
-## Architecture — how Python code runs
-
-Python is often called "interpreted", but under the hood there's a compile step too. The typical execution flow (for the reference implementation, **CPython**):
-
-```
-  .py source
-       │
-       ▼   ┌────────────────────────────────────────┐
-  ┌────────┤       Python Compiler (in CPython)      │
-  │        │  1. Lexer  → tokens                      │
-  │        │  2. Parser → AST                         │
-  │        │  3. Compiler → bytecode (.pyc)          │
-  │        └────────────────────────────────────────┘
-  │                    │
-  │                    ▼
-  │        ┌────────────────────────────────────────┐
-  └──────► │  Python Virtual Machine (PVM)           │
-           │  Executes bytecode instruction-by-      │
-           │  instruction on the CPython runtime      │
-           └────────────────────────────────────────┘
-                       │
-                       ▼
-                    Output
-```
-
-### Step by step
-1. **Source file** — plain-text `.py`, UTF-8 by default.
-2. **Lexer** — breaks source into tokens (identifiers, keywords, literals, operators).
-3. **Parser** — builds an **Abstract Syntax Tree (AST)** representing the program's structure.
-4. **Compiler** — walks the AST and emits **bytecode** — a low-level, platform-independent instruction set for the Python VM.
-5. **Cache** — bytecode is written to `__pycache__/<module>.cpython-<ver>.pyc` so future runs skip recompilation when the source hasn't changed.
-6. **Python Virtual Machine (PVM)** — a **stack-based** interpreter (in CPython, written in C) that reads the bytecode and executes each opcode.
-
-### Inspecting each stage
 ```python
-import ast, dis
-
-src = "x = 1 + 2"
-print(ast.dump(ast.parse(src)))    # AST
-dis.dis(compile(src, "<s>", "exec"))  # bytecode
+print("Hello, Python")
 ```
 
-### CPython vs other implementations
-| Implementation | Written in | Highlights |
-|----------------|-----------|-----------|
-| **CPython**    | C         | Reference implementation. What you get from python.org. |
-| **PyPy**       | RPython   | JIT-compiled; often several times faster on long-running pure-Python workloads (variable — sometimes slower for short scripts or C-extension-heavy code). |
-| **Jython**     | Java      | Runs on the JVM; interop with Java. |
-| **IronPython** | C#        | Runs on .NET / CLR. |
-| **MicroPython**| C         | For microcontrollers (ESP32, Pico). |
-| **GraalPy**    | Java      | Runs on GraalVM; interoperates with other GraalVM languages. |
+## Main Features
+| Feature | Meaning |
+|---------|---------|
+| Easy to read | Python code usually looks close to plain English |
+| Dynamically typed | variables do not need declared types |
+| Strongly typed | Python does not silently mix unrelated types |
+| Interpreted | code is run by the Python interpreter |
+| Cross-platform | the same code can run on macOS, Linux, and Windows |
+| Large ecosystem | many built-in modules and third-party packages are available |
 
-### The GIL (Global Interpreter Lock)
-CPython uses a **GIL** — a mutex that allows only **one thread** to execute Python bytecode at a time within a single process. Consequences:
-- Threads don't give you true parallelism for CPU-bound Python code.
-- I/O-bound code still benefits from threads (the GIL is released during I/O).
-- Use **`multiprocessing`** or **C extensions** (NumPy, etc.) for CPU-bound parallelism.
-- Python 3.13 introduces an experimental **free-threaded build** that removes the GIL.
+Example of dynamic typing:
 
-### Memory management
-- Every value is an **object** on the heap.
-- **Reference counting** — objects are freed when their refcount drops to 0.
-- **Cyclic garbage collector** (module `gc`) — cleans up reference cycles that pure refcounting can't.
-- Small ints (`-5` to `256`) are **cached**, and some strings (identifier-like literals) are **interned** — so `a is b` may unexpectedly be `True` for equal small ints or compile-time string literals. Don't rely on this behavior; use `==` for value equality.
-
----
-
-## Compiled vs interpreted — where does Python fit?
-
-Python is **both**: a two-stage system.
-
-| Stage           | Analogy             |
-|-----------------|---------------------|
-| `.py` → bytecode | Like `.java` → `.class` (a compile step, hidden from you). |
-| bytecode → run   | Like the JVM running `.class` files. |
-
-So a more accurate label is *"compiled to bytecode, interpreted on a virtual machine"* — similar in spirit to Java.
-
----
-
-## Building, compiling, and running
-
-### 1. Installing Python
-- **macOS**: `brew install python`, or download from python.org, or use `pyenv`.
-- **Linux**: usually preinstalled (`python3`); or via package manager (`apt install python3`, `dnf install python3`).
-- **Windows**: installer from python.org (check "Add Python to PATH"), or Microsoft Store.
-- **Version manager**: [`pyenv`](https://github.com/pyenv/pyenv) lets you switch versions per project.
-
-### 2. Running a script
-```bash
-python3 hello.py           # execute a file
-python3 -m module_name     # run a module as a script
-python3                    # interactive REPL
-python3 -c "print(1+1)"    # one-liner
-```
-
-The **shebang** line lets a script run directly on Unix:
 ```python
-#!/usr/bin/env python3
-print("hi")
+x = 10
+x = "hello"
 ```
+
+The same variable name can point to different types at different times.
+
+Example of strong typing:
+
+```python
+print("Age: " + 25)  # TypeError
+```
+
+Python does not automatically convert `25` to a string here.
+
+Use explicit conversion:
+
+```python
+print("Age: " + str(25))
+```
+
+## How Python Code Runs
+When you run a Python file, Python does a few steps internally:
+
+1. Reads the `.py` source code.
+2. Checks the syntax.
+3. Compiles the code to bytecode.
+4. Runs the bytecode using the Python virtual machine.
+
+You usually do not see these steps.
+
 ```bash
-chmod +x hello.py
-./hello.py
+python3 hello.py
 ```
 
-### 3. Virtual environments (essential!)
-Isolate dependencies per project so installs don't pollute the system Python.
+Python may create a `__pycache__` folder to store bytecode files.
+
+## CPython
+The most common Python implementation is **CPython**.
+
+CPython is:
+
+- written in C
+- the reference implementation of Python
+- the version most people install from python.org
+
+Other implementations include PyPy, Jython, IronPython, and MicroPython.
+
+## Python 2 and Python 3
+Python 3 is the current version of Python.
+
+Python 2 is no longer supported.
+
+Important differences:
+
+| Topic | Python 2 | Python 3 |
+|-------|----------|----------|
+| Print | `print "hi"` | `print("hi")` |
+| Strings | bytes by default | Unicode text by default |
+| Division | `5 / 2` gives `2` | `5 / 2` gives `2.5` |
+| Support | ended in 2020 | actively supported |
+
+Use Python 3 for new code.
+
+## Running Python
+Run a Python file:
+
 ```bash
-python3 -m venv .venv           # create
-source .venv/bin/activate       # activate (macOS/Linux)
-.venv\Scripts\activate          # activate (Windows)
-pip install requests            # install into this env
-deactivate                      # exit
+python3 hello.py
 ```
-Alternatives: **`virtualenv`**, **`conda`**, **`poetry`**, **`pipenv`**, **`uv`** (fast).
 
-### 4. Installing packages — `pip`
+Open the interactive shell:
+
 ```bash
-pip install <package>            # install
-pip install -r requirements.txt  # install pinned list
-pip freeze > requirements.txt    # snapshot current env
-pip uninstall <package>
+python3
 ```
 
-### 5. Bytecode files (`.pyc`)
-CPython automatically writes bytecode to `__pycache__/`:
+Run a short command:
+
+```bash
+python3 -c "print(2 + 3)"
 ```
-mymod.py
-__pycache__/mymod.cpython-312.pyc
+
+Run a module:
+
+```bash
+python3 -m pip --version
 ```
-- The filename embeds the interpreter version so different Pythons don't clash.
-- Regenerated automatically when the source changes (mtime-based by default; hash-based invalidation available since Python 3.7, PEP 552).
-- You can precompile manually: `python -m compileall .`
 
-### 6. Packaging & distribution
-- **`pyproject.toml`** — the modern project config file: build-system (PEP 518), build backend interface (PEP 517), project metadata (PEP 621).
-- **`setuptools` / `hatchling` / `flit` / `poetry`** — build backends.
-- **`pip install .`** — install a local project.
-- **`python -m build`** — produce a **sdist** (`.tar.gz`) and **wheel** (`.whl`).
-- **`twine upload dist/*`** — publish to PyPI.
-- **`wheel`** — a pre-built binary package format for pip.
+## Installing Packages
+Python packages are usually installed with `pip`.
 
-### 7. Distributing standalone apps
-Python isn't compiled to a native binary by default; to ship an executable:
-- **PyInstaller / py2exe / cx_Freeze** — bundle Python + your code into an `.exe`/`.app`.
-- **Nuitka** — actually compiles Python to C, producing a real binary.
-- **shiv / PEX** — zipapp-based single-file archives.
+```bash
+pip install requests
+```
 
----
+For a project, install packages inside a virtual environment instead of the system Python.
 
-## Interpreter internals — quick tour
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install requests
+```
 
-- **CPython source**: [github.com/python/cpython](https://github.com/python/cpython)
-- Main C entry point: `Python/ceval.c` — the giant `switch` on opcodes.
-- **Object model**: everything is a `PyObject *` in C.
-- **`dis` module** — disassemble any Python object to bytecode.
-- **`ast` module** — parse to AST programmatically.
-- **`sys` module** — interpreter state (`sys.version`, `sys.path`, `sys.getsizeof`, `sys.settrace`).
+Virtual environments are covered later in [20_Virtual_Environments.md](20_Virtual_Environments.md).
 
----
-
-## Ecosystem — why Python is popular
-- Massive standard library (`os`, `json`, `re`, `datetime`, `collections`, `itertools`, `pathlib`, `subprocess`, `asyncio`, ...).
-- **PyPI** (Python Package Index) hosts hundreds of thousands of packages.
-- Dominant in data / ML: **NumPy, pandas, scikit-learn, PyTorch, TensorFlow, JAX**.
-- Web frameworks: **Django, Flask, FastAPI**.
-- Automation / DevOps: **Ansible, SaltStack, Fabric**, plus scripting.
-- Scientific: **SciPy, matplotlib, SymPy, Jupyter**.
-- Great for **teaching** — clean syntax, high signal-to-ceremony ratio.
-
----
-
-## Python 2 vs Python 3 (still occasionally asked)
-
-| Feature | Python 2 | Python 3 |
-|---------|----------|----------|
-| `print` | statement `print "hi"` | function `print("hi")` |
-| Default string | `bytes` | `str` (Unicode) |
-| `/` on ints | floor division | true division (use `//` for floor) |
-| `range()` | returns a list | returns a lazy `range` object (sequence, not an iterator) |
-| `input()` | evaluates input | reads a string |
-| `xrange` | separate lazy sequence | gone — `range` is now the lazy sequence |
-| Long int | separate `long` type | `int` is arbitrary precision |
-| End of life | Jan 1 2020 | actively supported |
-
-Rule: **use Python 3.** Only touch Python 2 for legacy code you're migrating.
-
----
-
-## Common tooling (interview-relevant)
-
+## Common Tools
 | Tool | Purpose |
 |------|---------|
-| `python3` / `py`         | interpreter |
-| `pip`                    | package installer |
-| `venv` / `virtualenv`    | virtual environments |
-| `poetry` / `uv`          | modern dependency/env managers |
-| `pytest` / `unittest`    | testing |
-| `mypy` / `pyright`       | static type checking |
-| `ruff` / `flake8`        | linting |
-| `black` / `ruff format`  | formatting |
-| `pdb` / `ipdb`           | debugging |
-| `cProfile` / `timeit`    | profiling / micro-bench |
-| `pyenv`                  | manage multiple Python versions |
-| `pyinstaller` / `nuitka` | build standalone binaries |
+| `python3` | runs Python |
+| `pip` | installs packages |
+| `venv` | creates virtual environments |
+| `pytest` | runs tests |
+| `mypy` or `pyright` | checks type hints |
+| `ruff` | checks style and common mistakes |
+| `black` | formats code |
 
----
+## The Python Philosophy
+Python values readable code.
 
-## The Zen of Python (`import this`, excerpt)
+You can see Python's design ideas by running:
 
-> Beautiful is better than ugly.
-> Explicit is better than implicit.
-> Simple is better than complex.
-> Readability counts.
-> There should be one — and preferably only one — obvious way to do it.
+```python
+import this
+```
 
-Guidance rather than rules, but it explains a lot of Python's design choices — including why the language avoids "magic" and unnecessary configurability.
+One useful line is:
+
+```text
+Readability counts.
+```
+
+## Common Mistakes
+- Using Python 2 examples for new Python code.
+- Installing packages into the system Python instead of a virtual environment.
+- Assuming Python has no compile step at all. It compiles to bytecode internally.
+- Using `python` when your system requires `python3`.
+- Forgetting that Python is case-sensitive.
+
+## Summary
+- Python is readable, flexible, and widely used.
+- Python 3 is the modern version.
+- Python code is run by an interpreter.
+- CPython is the most common implementation.
+- Use virtual environments for project dependencies.

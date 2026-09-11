@@ -1,171 +1,215 @@
-# Generators & the Iterator Protocol
+# Generators
 
 ## Definition
-A **generator** is a function containing `yield`; calling it returns a **generator object** without running the body. The body advances on each `next()` and pauses at each `yield`, preserving local state. When the body returns, `next()` raises `StopIteration`.
+A generator creates values one at a time.
 
-## The iterator protocol
-- `__iter__(self)` — returns an iterator (often `self`).
-- `__next__(self)` — returns the next value or raises `StopIteration`.
+This is useful when:
 
-An **iterable** is anything `iter()` accepts (has `__iter__`, or the legacy `__getitem__` sequence protocol). A `for` loop is:
-```python
-it = iter(iterable)
-while True:
-    try:
-        x = next(it)
-    except StopIteration:
-        break
-    # body
-```
+- there are many values
+- you do not need all values at once
+- you want to write a simple loop that produces data
 
-Manual driving:
-```python
-it = iter([10, 20, 30])
-next(it)    # 10
-next(it)    # 20
-next(it)    # 30
-next(it)    # StopIteration
-```
+## Generator Functions
+A generator function uses `yield`.
 
-## Generator functions — `yield`
 ```python
-def count_up_to(n):
-    i = 1
-    while i <= n:
-        yield i             # pause here; resume on next()
-        i += 1
-
-g = count_up_to(3)
-next(g)                     # 1
-list(g)                     # [2, 3]
-```
-Idiomatic — drive with `for`:
-```python
-for x in count_up_to(3):
-    print(x)
-```
-
-Multiple `yield`s in one function are allowed; each pauses independently.
-```python
-def sequence():
-    yield "start"
-    for i in range(3):
-        yield i
-    yield "end"
-list(sequence())            # ['start', 0, 1, 2, 'end']
-```
-
-## Generator expressions
-Same syntax as a list comprehension, but with **parentheses**. Produces a generator, not a list — O(1) memory.
-```python
-squares = (x * x for x in range(1_000_000))
-sum(squares)                # streams; no list built
-```
-When the generator expression is the **sole argument** to a call, the outer parens can be dropped:
-```python
-sum(x * x for x in range(10))
-```
-
-## `yield from`
-Delegates iteration to another iterable — yields everything the sub-iterable yields, forwards `.send`, `.throw`, `.close` calls to the sub-generator, and propagates the sub-generator's return value.
-```python
-def sub():
+def count_to_three():
     yield 1
     yield 2
-    return "done"
-
-def top():
-    yield 0
-    result = yield from sub()   # receives sub()'s return value
     yield 3
-    yield result
-
-list(top())                     # [0, 1, 2, 3, 'done']
 ```
 
-## Memory vs list comprehension
-| | Generator | List comp |
-|---|---|---|
-| Syntax | `(x*2 for x in xs)` | `[x*2 for x in xs]` |
-| Result | iterator | list |
-| Memory | one item at a time | all at once |
-| Reusable | no — one-shot | yes |
-| Indexable | no | yes |
+Calling the function does not run the body immediately.
 
-Use a generator for large or unbounded streams and single-pass consumption. Use a list when you need `len`, indexing, or multiple iterations.
-
-## `.send(value)` — two-way communication
-Inside the generator, `yield` can be an **expression** whose value is what the caller passes to `.send()`. Advances one step, like `next()`, but injects a value.
 ```python
-def echo():
-    while True:
-        received = yield        # yields None; receives caller's value
-        print("got:", received)
-
-g = echo()
-next(g)                         # prime — advance to the first yield
-g.send("hi")                    # prints "got: hi"
-```
-The first `.send(x)` must be `.send(None)` (or `next(g)`) because there's no `yield` waiting yet.
-
-## `.throw(ExcType, ...)`
-Raises the exception **at the current `yield`** inside the generator. If the generator catches it, execution continues; if not, the exception propagates back to the caller.
-
-## `.close()`
-Raises `GeneratorExit` at the current `yield`. The generator should let it propagate (typical `try/finally` cleanup path); catching and yielding again raises `RuntimeError`.
-```python
-def resource():
-    try:
-        yield open_thing()
-    finally:
-        close_thing()           # runs on .close() or GC
+numbers = count_to_three()
+print(numbers)
 ```
 
-## `return` inside a generator
-Ends iteration and sets `StopIteration.value` to the returned value. Not a plain return — the caller sees `StopIteration`, not the value, unless they use `yield from` (which extracts it) or catch `StopIteration` manually.
+It creates a generator object.
+
+To get values, loop over it:
+
 ```python
-def gen():
+for number in count_to_three():
+    print(number)
+```
+
+Output:
+
+```text
+1
+2
+3
+```
+
+## How `yield` Works
+When Python reaches `yield`, it gives a value back and pauses the function.
+
+The next time you ask for a value, the function continues after the `yield`.
+
+```python
+def count_up_to(limit):
+    number = 1
+
+    while number <= limit:
+        yield number
+        number = number + 1
+
+counter = count_up_to(3)
+
+print(next(counter))
+print(next(counter))
+print(next(counter))
+```
+
+Output:
+
+```text
+1
+2
+3
+```
+
+After the generator is finished, another `next(counter)` raises `StopIteration`.
+
+## One-Time Iteration
+Once a generator is used up, it is empty.
+
+```python
+numbers = count_up_to(3)
+
+print(list(numbers))
+print(list(numbers))
+```
+
+Output:
+
+```text
+[1, 2, 3]
+[]
+```
+
+Create a new generator if you need to loop again.
+
+```python
+print(list(count_up_to(3)))
+print(list(count_up_to(3)))
+```
+
+## Generator Expressions
+A generator expression looks like a list comprehension, but uses parentheses.
+
+```python
+squares = (number * number for number in range(5))
+```
+
+It does not build a full list.
+
+```python
+print(sum(number * number for number in range(5)))
+```
+
+Output:
+
+```text
+30
+```
+
+Compare:
+
+```python
+squares_list = [number * number for number in range(5)]
+squares_generator = (number * number for number in range(5))
+```
+
+The list stores all results.
+
+The generator produces results one at a time.
+
+## Why Use Generators?
+Generators can save memory.
+
+```python
+def read_lines(path):
+    with open(path) as file:
+        for line in file:
+            yield line.strip()
+```
+
+This reads one line at a time instead of loading the whole file into memory.
+
+You can use it like this:
+
+```python
+for line in read_lines("data.txt"):
+    print(line)
+```
+
+## The `yield from` Statement
+Use `yield from` to yield all values from another iterable.
+
+```python
+def numbers():
     yield 1
-    return "done"
+    yield 2
 
-g = gen()
-next(g)                         # 1
-try:
-    next(g)
-except StopIteration as e:
-    print(e.value)              # 'done'
+def more_numbers():
+    yield 0
+    yield from numbers()
+    yield 3
+
+print(list(more_numbers()))
 ```
 
-## Debugging state
+Output:
+
+```text
+[0, 1, 2, 3]
+```
+
+This is simpler than writing another loop:
+
 ```python
-import inspect
-inspect.getgeneratorstate(g)
-# 'GEN_CREATED' | 'GEN_RUNNING' | 'GEN_SUSPENDED' | 'GEN_CLOSED'
+for number in numbers():
+    yield number
 ```
 
-## Async generators (3.6+)
-`async def` + `yield`; iterated with `async for`. Cannot use `yield from`; use `async for` inside instead.
+## Generators vs Lists
+Use a list when you need to:
+
+- keep all values
+- check the length
+- use indexing
+- loop more than once
+
+Use a generator when you want to:
+
+- process one value at a time
+- avoid storing everything
+- work with a long or unknown amount of data
+
+Example:
+
 ```python
-async def stream(urls):
-    for u in urls:
-        yield await fetch(u)
-
-async for page in stream(urls):
-    ...
+numbers = [1, 2, 3]
+print(numbers[0])
+print(len(numbers))
 ```
 
-## Semantics
-- Calling a generator function **does not run the body** — it returns a generator object.
-- Body runs on `next()` / `.send()` up to the next `yield`, which suspends the frame with locals intact.
-- Exhausted generators raise `StopIteration` on every subsequent `next()`.
-- `for x in gen:` consumes the generator; a second `for` sees nothing.
+A generator does not support indexing or `len`.
 
-## Gotchas
-- **Calling the function doesn't execute it** — you must iterate.
-- **One-shot** — iterate twice and the second pass is empty.
-- **No indexing** — `g[0]` fails; use `next(g)` or `list(g)` (defeats laziness).
-- **`return value` in a generator** — ends iteration, sets `StopIteration.value`; the value is not returned to the immediate caller of `next()`.
-- **`yield` inside `try/finally`** — `finally` runs on `.close()` or on garbage collection, not immediately after the last `yield`.
-- **`(x for x in xs)` vs `(x,)`** — first is a generator, second is a one-element tuple.
-- **First `.send` must be `None`** — otherwise `TypeError`; prime with `next(g)`.
-- **`await` in a generator (non-async)** — not allowed; use `async def`.
+## Common Mistakes
+- Calling a generator function and expecting the body to run immediately.
+- Trying to use the same generator twice.
+- Trying to index a generator.
+- Forgetting that `yield` pauses the function.
+- Using a generator when a simple list would make the code clearer.
+
+## Summary
+- A generator produces values one at a time.
+- A generator function uses `yield`.
+- Calling a generator function returns a generator object.
+- Generators are one-time use.
+- Generator expressions use parentheses.
+- Use generators when you want lazy, memory-friendly iteration.
