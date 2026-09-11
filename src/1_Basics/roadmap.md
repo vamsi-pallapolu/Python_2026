@@ -1,5 +1,7 @@
 # Basics — Roadmap
 
+![Python basics roadmap](./1_python_basics.png)
+
 Mandatory Python basics to cover before moving on to advanced topics (OOP, decorators, concurrency, stdlib deep-dives, etc.). Ordered by dependency — earlier items unlock later ones. Numbering matches `resources/Basics/`.
 
 Legend: `[x]` covered · `[ ]` pending
